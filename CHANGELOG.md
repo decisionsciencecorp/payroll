@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.2] — 2026-03-11
+
+### Fixed
+
+- **Test paths:** Integration tests use `PHP_BINARY` when starting the built-in server so the suite runs when PHP is not on PATH. Project root for the server is now `dirname(__DIR__, 2)` (repo root). Added `scripts/run-tests.php` to run PHPUnit with the same PHP binary; documented in TESTING.md.
+
 ## [0.3.1] — 2026-03-11
 
 ### Fixed

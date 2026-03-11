@@ -27,6 +27,14 @@ From the project root:
 ./vendor/bin/phpunit
 ```
 
+If PHP is not on your PATH, use the same PHP binary to run the test runner (so the built-in server uses that binary too):
+
+```bash
+/path/to/php scripts/run-tests.php
+```
+
+Or set `PHP_BINARY` and run phpunit; the integration tests use `PHP_BINARY` when starting the server.
+
 This will:
 
 1. Use a temporary SQLite database (and temp storage) per run (`PAYROLL_TEST=1`, `DB_PATH` in temp).

@@ -16,8 +16,9 @@ class ApiIntegrationTest extends TestCase
         if (!self::$apiKey) {
             self::markTestSkipped('No test API key');
         }
-        $projectRoot = dirname(__DIR__, 1);
-        $cmd = 'php -S 127.0.0.1:8765 -t public';
+        $projectRoot = dirname(__DIR__, 2);
+        $phpBinary = (defined('PHP_BINARY') && PHP_BINARY !== '') ? PHP_BINARY : 'php';
+        $cmd = $phpBinary . ' -S 127.0.0.1:8765 -t public';
         $pipes = [];
         self::$serverProcess = proc_open(
             $cmd,
