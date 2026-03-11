@@ -9,6 +9,9 @@
 # Composer
 /vendor/
 
+# PHPUnit
+/build/
+
 # OS
 .DS_Store
 Thumbs.db

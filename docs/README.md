@@ -13,6 +13,7 @@ This directory contains the full documentation for the Payroll application. **Do
 | [ADMIN.md](ADMIN.md) | Admin UI guide (login, dashboard, each page) |
 | [DATA-MODEL.md](DATA-MODEL.md) | Database schema and tables |
 | [TAX-CONFIG.md](TAX-CONFIG.md) | Tax bracket JSON format and validation |
+| [TESTING.md](TESTING.md) | PHPUnit test suite (unit, integration, API), 90% coverage |
 | [PRD.md](PRD.md) | Product requirements document (authoritative) |
 
 *Documentation in this repository is licensed under [CC BY-SA 4.0](../LICENSE-DOCS).*

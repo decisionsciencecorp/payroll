@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.1] — 2026-03-11
+
+### Fixed
+
+- **Admin Users page fatal (fixes #19).** `public/admin/users.php` called `formatDate()` without requiring `functions.php`, causing a fatal error when opening Admin → Users. Added `require_once` for `functions.php`. Regression test: `testAdminUsersPageLoadsWithAuth` in `ApiIntegrationTest` (login then GET `/admin/users.php`, assert 200 and no undefined function in body).
+
 ## [0.3.0] — 2026-03-11
 
 ### Added

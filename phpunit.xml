@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         failOnRisky="true"
+         failOnWarning="true">
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+    <coverage processUncoveredFiles="true"
+              includeUncoveredFiles="true"
+              pathCoverage="false">
+        <include>
+            <directory suffix=".php">public/includes</directory>
+            <directory suffix=".php">public/api</directory>
+        </include>
+        <exclude>
+            <file>public/includes/config.php</file>
+        </exclude>
+        <report>
+            <clover outputFile="build/coverage/clover.xml"/>
+            <html outputDirectory="build/coverage/html" lowUpperBound="90" highLowerBound="90"/>
+            <text outputFile="php://stdout" showUncoveredFiles="true" showOnlySummary="false"/>
+        </report>
+    </coverage>
+</phpunit>

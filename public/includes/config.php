@@ -1,8 +1,13 @@
 <?php
 // Payroll - Copyright (C) 2026 Decision Science Corp. - Licensed under GNU AGPL v3.0. See LICENSE.
 // Payroll app configuration — LEMP-compatible, no .htaccess
-define('DB_PATH', __DIR__ . '/../../db/payroll.db');
-define('STORAGE_PATH', __DIR__ . '/../../storage');
+if (getenv('PAYROLL_TEST') && getenv('DB_PATH')) {
+    define('DB_PATH', getenv('DB_PATH'));
+    define('STORAGE_PATH', getenv('STORAGE_PATH') ?: (sys_get_temp_dir() . '/payroll_storage'));
+} else {
+    define('DB_PATH', __DIR__ . '/../../db/payroll.db');
+    define('STORAGE_PATH', __DIR__ . '/../../storage');
+}
 define('DB_TIMEOUT', 30);
 define('SESSION_NAME', 'payroll_admin');
 define('PASSWORD_COST', 12);
