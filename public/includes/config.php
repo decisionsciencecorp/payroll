@@ -1,0 +1,155 @@
+<?php
+// Payroll app configuration — LEMP-compatible, no .htaccess
+define('DB_PATH', __DIR__ . '/../../db/payroll.db');
+define('STORAGE_PATH', __DIR__ . '/../../storage');
+define('DB_TIMEOUT', 30);
+define('SESSION_NAME', 'payroll_admin');
+define('PASSWORD_COST', 12);
+define('SITE_NAME', 'Payroll');
+
+if (!defined('SITE_URL')) {
+    define('SITE_URL', 'http://localhost');
+}
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_name(SESSION_NAME);
+    session_start();
+}
+
+$isDevelopment = (
+    ($_SERVER['HTTP_HOST'] ?? '') === 'localhost' ||
+    strpos($_SERVER['HTTP_HOST'] ?? '', '127.0.0.1') !== false ||
+    (isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'development')
+);
+
+if ($isDevelopment) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+} else {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 0);
+    ini_set('log_errors', 1);
+    ini_set('error_log', __DIR__ . '/../../logs/php-errors.log');
+}
+
+date_default_timezone_set('UTC');
+
+function getDbConnection() {
+    try {
+        $db = new SQLite3(DB_PATH);
+        $db->enableExceptions(true);
+        $db->busyTimeout(DB_TIMEOUT * 1000);
+        $db->exec('PRAGMA foreign_keys = ON');
+        return $db;
+    } catch (Exception $e) {
+        die('Database connection failed: ' . $e->getMessage());
+    }
+}
+
+function initializeDatabase() {
+    $db = getDbConnection();
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS api_keys (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key_name TEXT NOT NULL,
+            api_key TEXT UNIQUE NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            last_used DATETIME
+        )
+    ");
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS api_rate_limits (
+            rate_key TEXT PRIMARY KEY,
+            window_start INTEGER NOT NULL,
+            count INTEGER NOT NULL
+        )
+    ");
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS employees (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            full_name TEXT NOT NULL,
+            ssn TEXT NOT NULL,
+            filing_status TEXT NOT NULL CHECK(filing_status IN ('Single','Married filing jointly','Married filing separately','Head of Household')),
+            step4a_other_income REAL,
+            step4b_deductions REAL,
+            step4c_extra_withholding REAL,
+            hire_date TEXT NOT NULL,
+            monthly_gross_salary REAL NOT NULL,
+            i9_completed_at TEXT,
+            address_line1 TEXT,
+            address_line2 TEXT,
+            city TEXT,
+            state TEXT,
+            zip TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS payroll_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employee_id INTEGER NOT NULL REFERENCES employees(id),
+            pay_period_start TEXT NOT NULL,
+            pay_period_end TEXT NOT NULL,
+            pay_date TEXT NOT NULL,
+            gross_pay REAL NOT NULL,
+            federal_withholding REAL NOT NULL,
+            employee_ss REAL NOT NULL,
+            employee_medicare REAL NOT NULL,
+            employer_ss REAL NOT NULL,
+            employer_medicare REAL NOT NULL,
+            net_pay REAL NOT NULL,
+            ytd_gross REAL NOT NULL,
+            ytd_federal_withheld REAL NOT NULL,
+            ytd_ss REAL NOT NULL,
+            ytd_medicare REAL NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_payroll_employee_id ON payroll_history(employee_id)");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_payroll_pay_date ON payroll_history(pay_date)");
+    $db->exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_payroll_employee_date ON payroll_history(employee_id, pay_date)");
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS tax_config (
+            tax_year INTEGER PRIMARY KEY,
+            config_json TEXT NOT NULL
+        )
+    ");
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS company_settings (
+            id INTEGER PRIMARY KEY CHECK(id = 1),
+            logo_path TEXT,
+            employer_name TEXT,
+            employer_ein TEXT,
+            employer_address_line1 TEXT,
+            employer_address_line2 TEXT,
+            employer_city TEXT,
+            employer_state TEXT,
+            employer_zip TEXT,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+    $db->exec("INSERT OR IGNORE INTO company_settings (id) VALUES (1)");
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS admin_users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+
+    // Seed default admin if no users
+    $r = $db->query("SELECT COUNT(*) as c FROM admin_users");
+    $row = $r->fetchArray(SQLITE3_ASSOC);
+    if ($row && $row['c'] == 0) {
+        $hash = password_hash('admin', PASSWORD_BCRYPT, ['cost' => PASSWORD_COST]);
+        $stmt = $db->prepare("INSERT INTO admin_users (username, password_hash) VALUES ('admin', :h)");
+        $stmt->bindValue(':h', $hash, SQLITE3_TEXT);
+        $stmt->execute();
+    }
+}

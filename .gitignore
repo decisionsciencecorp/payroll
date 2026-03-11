@@ -1,0 +1,14 @@
+# Database and runtime
+/db/*.db
+/db/*.db-journal
+/storage/*
+!/storage/.gitkeep
+/logs/*
+!/logs/.gitkeep
+
+# Composer
+/vendor/
+
+# OS
+.DS_Store
+Thumbs.db

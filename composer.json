@@ -1,0 +1,10 @@
+{
+    "name": "decisionsciencecorp/payroll",
+    "require": {
+        "php": ">=7.4",
+        "tecnickcom/tcpdf": "^6.6"
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

@@ -1,0 +1,70 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --bg: #0f172a;
+    --bg-card: #1e293b;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --border: #334155;
+    --danger: #dc2626;
+}
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+.header {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+}
+.header-content { max-width: 1200px; margin: 0 auto; }
+.site-title { font-size: 1.25rem; font-weight: 700; }
+.site-subtitle { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+.container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+.main-content { padding: 0; }
+.info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    text-decoration: none;
+}
+.btn:hover { background: var(--primary-dark); }
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+.btn-secondary:hover { background: var(--bg-card); }
+input[type="text"], input[type="password"], input[type="email"], input[type="number"], input[type="date"], textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.875rem;
+}
+label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--text-muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
+.danger { color: var(--danger); border-color: var(--danger); }
+.danger:hover { background: rgba(220,38,38,0.1); }
+.flex { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.mb-2 { margin-bottom: 1.5rem; }
