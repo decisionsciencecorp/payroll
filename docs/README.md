@@ -20,5 +20,5 @@ This directory contains the full documentation for the Payroll application. **Do
 ## Quick links
 
 - **New install?** Start with [INSTALL.md](INSTALL.md), then [CONFIGURATION.md](CONFIGURATION.md).
-- **Integrating via API?** Use [API.md](API.md) or [API-QUICK-REFERENCE.md](API-QUICK-REFERENCE.md).
+- **Integrating via API?** Use [API.md](API.md) or [API-QUICK-REFERENCE.md](API-QUICK-REFERENCE.md). A [Python SDK](../SDK/python/README.md) is available in `SDK/python/`.
 - **Setting up tax rates?** See [TAX-CONFIG.md](TAX-CONFIG.md) and [PRD.md](PRD.md) §6.

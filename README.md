@@ -50,6 +50,10 @@ Single-company internal payroll application. Monthly pay runs, federal income ta
 
 ---
 
+## SDK
+
+A **Python SDK** is provided in `SDK/python/`. Install with `pip install -e SDK/python` and use the `PayrollClient` for all API operations. See [SDK/python/README.md](SDK/python/README.md).
+
 ## Repository layout
 
 ```
@@ -59,6 +63,8 @@ payroll/
 │   ├── admin/        ← Admin UI
 │   ├── includes/     ← config, functions, auth, csrf
 │   └── css/
+├── SDK/
+│   └── python/       ← Python SDK (payroll_sdk)
 ├── db/               ← SQLite DB (created at runtime)
 ├── storage/          ← Uploaded logo
 ├── docs/             ← Documentation
@@ -78,4 +84,4 @@ payroll/
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for release history. Current release: **0.2.0**.
+See [CHANGELOG.md](CHANGELOG.md) for release history. Current release: **0.3.0**.

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.0] — 2026-03-11
+
+### Added
+
+- **Python SDK** in `SDK/python/`. Package `payroll_sdk` with `PayrollClient` and `PayrollAPIError`. Covers all API endpoints: tax brackets (upload, list, get, delete), employees (CRUD), payroll (run, list, get), logo upload, pay stub HTML, W-2 HTML. Install with `pip install -e SDK/python`. See [SDK/python/README.md](SDK/python/README.md).
+
 ## [0.2.0] — 2026-03-11
 
 ### Added
