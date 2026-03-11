@@ -1,4 +1,5 @@
 <?php
+// Payroll - Copyright (C) 2026 Decision Science Corp. - Licensed under GNU AGPL v3.0. See LICENSE.
 // Payroll app configuration — LEMP-compatible, no .htaccess
 define('DB_PATH', __DIR__ . '/../../db/payroll.db');
 define('STORAGE_PATH', __DIR__ . '/../../storage');

@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.2.0] — 2026-03-11
+
+### Added
+
+- **Licenses.** Code licensed under GNU AGPL v3.0 (see [LICENSE](LICENSE)). Documentation and other non-code material licensed under CC BY-SA 4.0 (see [LICENSE-DOCS](LICENSE-DOCS)).
+- **Full documentation.** [docs/README.md](docs/README.md) (index); [docs/INSTALL.md](docs/INSTALL.md) (installation, server setup, first run); [docs/CONFIGURATION.md](docs/CONFIGURATION.md) (config options, SITE_URL, paths); [docs/API.md](docs/API.md) (full API reference with request/response and errors); [docs/ADMIN.md](docs/ADMIN.md) (admin UI guide); [docs/DATA-MODEL.md](docs/DATA-MODEL.md) (database schema and tables); [docs/TAX-CONFIG.md](docs/TAX-CONFIG.md) (tax bracket JSON format and validation).
+- **README.** Full README with features, requirements, quick start, documentation index, repo layout, and license summary.
+
+### Changed
+
+- README expanded to point to all docs and to state AGPL v3 for code and CC BY-SA 4.0 for non-code.
+
 ## [0.1.0] — 2026-03-11
 
 ### Added
