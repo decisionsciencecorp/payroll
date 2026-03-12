@@ -223,6 +223,17 @@ class PayrollClient:
         files = {"logo": (name, file, "image/png")}
         return self._request("POST", "/api/upload-logo.php", files=files, expect_json=True)
 
+    def get_logo(self) -> bytes:
+        """
+        Fetch the current company logo (PNG or JPEG). Returns raw bytes.
+        Raises PayrollAPIError with status 404 if no logo has been uploaded.
+        """
+        return self._request(
+            "GET",
+            "/api/logo-file.php",
+            expect_json=False,
+        )
+
     # --- Pay stub (HTML) ---
 
     def get_pay_stub_html(self, payroll_id: int) -> bytes:

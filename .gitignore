@@ -12,6 +12,15 @@
 # PHPUnit
 /build/
 
+# Python (SDK)
+.venv/
+*.egg-info/
+*.pyc
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+
 # OS
 .DS_Store
 Thumbs.db

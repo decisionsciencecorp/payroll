@@ -5,4 +5,4 @@ from payroll_sdk.client import PayrollClient
 from payroll_sdk.exceptions import PayrollAPIError
 
 __all__ = ["PayrollClient", "PayrollAPIError"]
-__version__ = "0.3.0"
+__version__ = "0.4.0"

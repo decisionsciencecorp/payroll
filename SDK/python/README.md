@@ -85,11 +85,11 @@ except PayrollAPIError as e:
 | Tax config | `upload_tax_brackets`, `list_tax_brackets`, `get_tax_brackets`, `delete_tax_brackets` |
 | Employees | `create_employee`, `list_employees`, `get_employee`, `update_employee`, `delete_employee` |
 | Payroll | `run_payroll`, `list_payroll`, `get_payroll` |
-| Logo | `upload_logo` |
+| Logo | `upload_logo`, `get_logo` |
 | Outputs | `get_pay_stub_html`, `get_w2_html` |
 
 See the [API docs](../../docs/API.md) and [quick reference](../../docs/API-QUICK-REFERENCE.md) for request/response details.
 
 ## Version
 
-SDK version is aligned with the repository release. Current: **0.3.0**.
+SDK version is aligned with the repository release. Current: **0.4.0**.
