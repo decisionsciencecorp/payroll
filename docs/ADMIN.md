@@ -16,8 +16,10 @@ The admin interface is session-based. All admin pages live under `/admin/` and r
 ## Employees
 
 - **URL:** `/admin/employees.php`
-- Lists all employees (name, masked SSN, filing status, hire date, monthly gross). Read-only in the UI.
-- To add or edit employees, use the API (see [API.md](API.md)) or integrate your own forms that call the API.
+- Lists all employees (name, masked SSN, filing status, hire date, monthly gross) with **Edit** and **Delete** actions.
+- **Add employee:** Click **Add employee** to open the form; submit to create via the API.
+- **Edit:** Click **Edit** on a row to change name, SSN, filing status, hire date, salary, address, and W-4 step 4 options.
+- **Delete:** Shown only for employees with no payroll history; employees who have payroll runs cannot be deleted.
 
 ## Payroll
 

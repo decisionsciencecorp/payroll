@@ -43,13 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-function getApiKeyForAdmin() {
-    $db = getDbConnection();
-    $r = $db->query("SELECT api_key FROM api_keys LIMIT 1");
-    $row = $r->fetchArray(SQLITE3_ASSOC);
-    return $row ? $row['api_key'] : null;
-}
-
 $db = getDbConnection();
 $r = $db->query("SELECT p.*, e.full_name FROM payroll_history p JOIN employees e ON e.id = p.employee_id ORDER BY p.pay_date DESC, p.id DESC LIMIT 100");
 $payrolls = [];

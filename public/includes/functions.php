@@ -98,6 +98,14 @@ function maskSsn($ssn) {
     return '***-**-' . substr($digits, -4);
 }
 
+/** Return first API key for admin UI server-side API calls (e.g. run payroll, create employee). */
+function getApiKeyForAdmin() {
+    $db = getDbConnection();
+    $r = $db->query("SELECT api_key FROM api_keys LIMIT 1");
+    $row = $r->fetchArray(SQLITE3_ASSOC);
+    return $row ? $row['api_key'] : null;
+}
+
 // API key management (for admin)
 function getAllApiKeys() {
     $db = getDbConnection();

@@ -51,7 +51,7 @@ body {
     color: var(--text);
 }
 .btn-secondary:hover { background: var(--bg-card); }
-input[type="text"], input[type="password"], input[type="email"], input[type="number"], input[type="date"], textarea {
+input[type="text"], input[type="password"], input[type="email"], input[type="number"], input[type="date"], textarea, select {
     width: 100%;
     padding: 0.5rem 0.75rem;
     background: var(--bg);
