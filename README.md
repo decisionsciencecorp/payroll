@@ -15,6 +15,7 @@ Single-company internal payroll application. Monthly pay runs, federal income ta
 - **W-2:** Generate W-2-style HTML for a tax year (download; print to PDF). Employer and employee addresses required.
 - **Admin UI:** Session-based login, dashboard, API key management, admin users, employees list, payroll run form, tax config upload, logo upload, company (employer) settings, W-2 generation. Lightweight user management (no roles).
 - **REST API:** All operations available via API; script-per-endpoint style, `X-API-Key` auth, JSON envelope. See [docs/API.md](docs/API.md) and [docs/API-QUICK-REFERENCE.md](docs/API-QUICK-REFERENCE.md).
+- **SMCP plugin:** MCP tools for agents (Letta, Claude Desktop, etc.): employees, payroll runs, tax config. See [smcp_plugin/README.md](smcp_plugin/README.md) and [docs/SMCP-PLUGIN.md](docs/SMCP-PLUGIN.md).
 
 ---
 
@@ -50,12 +51,18 @@ Single-company internal payroll application. Monthly pay runs, federal income ta
 | [docs/TAX-CONFIG.md](docs/TAX-CONFIG.md) | Tax bracket JSON format |
 | [docs/TESTING.md](docs/TESTING.md) | PHPUnit test suite (unit, integration, API) |
 | [docs/PRD.md](docs/PRD.md) | Product requirements (authoritative) |
+| [docs/SMCP-PLUGIN.md](docs/SMCP-PLUGIN.md) | SMCP plugin for MCP agents |
+| [docs/VISUAL-WALKTHROUGH.md](docs/VISUAL-WALKTHROUGH.md) | Visual walkthrough of the admin UI |
 
 ---
 
 ## SDK
 
 A **Python SDK** is provided in `SDK/python/`. Install with `pip install -e SDK/python` and use the `PayrollClient` for all API operations. See [SDK/python/README.md](SDK/python/README.md).
+
+## SMCP plugin
+
+An **SMCP plugin** in `smcp_plugin/` exposes the Payroll API as MCP tools for agents (Letta, Claude Desktop, Sanctum/Animus). It uses the Python SDK and requires `PAYROLL_BASE_URL` and `PAYROLL_API_KEY`. Full setup, command reference, and test instructions: [smcp_plugin/README.md](smcp_plugin/README.md). Docs index: [docs/SMCP-PLUGIN.md](docs/SMCP-PLUGIN.md).
 
 ## Repository layout
 
@@ -68,9 +75,11 @@ payroll/
 │   └── css/
 ├── SDK/
 │   └── python/       ← Python SDK (payroll_sdk)
+├── smcp_plugin/      ← SMCP plugin (cli.py, tests); 100% coverage
 ├── db/               ← SQLite DB (created at runtime)
 ├── storage/          ← Uploaded logo
 ├── docs/             ← Documentation
+├── .coveragerc       ← Coverage config for smcp_plugin (omit tests)
 ├── LICENSE           ← GNU AGPL v3 (code)
 ├── LICENSE-DOCS      ← CC BY-SA 4.0 (docs and non-code)
 └── CHANGELOG.md
@@ -87,4 +96,4 @@ payroll/
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for release history. Current release: **0.3.2**.
+See [CHANGELOG.md](CHANGELOG.md) for release history. Current release: **0.3.3**.

@@ -15,6 +15,8 @@ This directory contains the full documentation for the Payroll application. **Do
 | [TAX-CONFIG.md](TAX-CONFIG.md) | Tax bracket JSON format and validation |
 | [TESTING.md](TESTING.md) | PHPUnit test suite (unit, integration, API), 90% coverage |
 | [PRD.md](PRD.md) | Product requirements document (authoritative) |
+| [SMCP-PLUGIN.md](SMCP-PLUGIN.md) | SMCP plugin for MCP agents (setup, commands, testing) |
+| [VISUAL-WALKTHROUGH.md](VISUAL-WALKTHROUGH.md) | Visual walkthrough of the admin UI (screenshots) |
 
 *Documentation in this repository is licensed under [CC BY-SA 4.0](../LICENSE-DOCS).*
 
@@ -23,3 +25,4 @@ This directory contains the full documentation for the Payroll application. **Do
 - **New install?** Start with [INSTALL.md](INSTALL.md), then [CONFIGURATION.md](CONFIGURATION.md).
 - **Integrating via API?** Use [API.md](API.md) or [API-QUICK-REFERENCE.md](API-QUICK-REFERENCE.md). A [Python SDK](../SDK/python/README.md) is available in `SDK/python/`.
 - **Setting up tax rates?** See [TAX-CONFIG.md](TAX-CONFIG.md) and [PRD.md](PRD.md) §6.
+- **Using MCP/agents (Letta, Claude Desktop)?** See [SMCP-PLUGIN.md](SMCP-PLUGIN.md) and [smcp_plugin/README.md](../smcp_plugin/README.md).

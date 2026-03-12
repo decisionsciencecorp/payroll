@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.3] — 2026-03-12
+
+### Added
+
+- **Visual walkthrough.** [docs/VISUAL-WALKTHROUGH.md](docs/VISUAL-WALKTHROUGH.md) — screenshot-based walkthrough of the full admin UI (login, dashboard, employees, payroll, tax config, API keys, logo, company, W-2, users, change password). Screenshots captured with Playwright via [scripts/capture_admin_walkthrough.py](scripts/capture_admin_walkthrough.py); instructions for re-capturing included.
+- **SMCP plugin docs.** [docs/SMCP-PLUGIN.md](docs/SMCP-PLUGIN.md) — doc index entry and quick link for the Payroll SMCP plugin. [smcp_plugin/README.md](smcp_plugin/README.md) expanded with full parameter reference, testing, and coverage details.
+
+### Changed
+
+- **.gitignore:** Added `.venv-playwright/` so the Playwright capture venv is not committed.
+
 ## [0.3.2] — 2026-03-11
 
 ### Fixed

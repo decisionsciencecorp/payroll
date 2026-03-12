@@ -12,8 +12,9 @@
 # PHPUnit
 /build/
 
-# Python (SDK)
+# Python (SDK, Playwright)
 .venv/
+.venv-playwright/
 *.egg-info/
 *.pyc
 __pycache__/
