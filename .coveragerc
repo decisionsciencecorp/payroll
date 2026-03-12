@@ -1,0 +1,3 @@
+[run]
+source = smcp_plugin
+omit = smcp_plugin/tests/*
