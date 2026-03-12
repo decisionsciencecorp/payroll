@@ -46,14 +46,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $eaddr = trim(implode(', ', array_filter([$company['employer_address_line1'], $company['employer_address_line2'], $company['employer_city'], $company['employer_state'], $company['employer_zip']])));
                 echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>W-2 ' . $year . '</title><style>body{font-family:system-ui}.w2{border:1px solid #000;width:600px;margin:1rem auto;padding:0.5rem;page-break-after:always}table{width:100%;border-collapse:collapse}.w2 td{padding:2px 4px;border:1px solid #ccc}</style></head><body>';
                 foreach ($w2s as $w) {
-                    echo '<div class="w2"><p><strong>Form W-2 — ' . $year . '</strong></p><table>';
+                    $empAddr = trim(implode(', ', array_filter([$w['address_line1'], $w['address_line2'], $w['city'], $w['state'], $w['zip']])));
+                    $w1 = $fmt($w['ytd_gross']);
+                    $w2 = $fmt($w['ytd_federal_withheld']);
+                    $w3 = $fmt($w['ytd_ss']);
+                    $w4 = $fmt($w['ytd_medicare']);
+                    echo '<div class="w2"><p><strong>Form W-2 - ' . $year . '</strong></p><table>';
                     echo '<tr><td>Employer EIN</td><td>' . $ein . '</td><td>Employer</td><td>' . $ename . '</td></tr>';
                     echo '<tr><td colspan="4">' . htmlspecialchars($eaddr) . '</td></tr>';
                     echo '<tr><td>Employee SSN</td><td>' . htmlspecialchars($w['ssn']) . '</td><td>Name</td><td>' . htmlspecialchars($w['full_name']) . '</td></tr>';
-                    echo '<tr><td colspan="4">' . htmlspecialchars(trim(implode(', ', array_filter([$w['address_line1'], $w['address_line2'], $w['city'], $w['state'], $w['zip'])))) . '</td></tr>';
-                    echo '<tr><td>1 Wages</td><td>$' . $fmt($w['ytd_gross']) . '</td><td>2 Federal</td><td>$' . $fmt($w['ytd_federal_withheld']) . '</td></tr>';
-                    echo '<tr><td>3 SS wages</td><td>$' . $fmt($w['ytd_gross']) . '</td><td>4 SS withheld</td><td>$' . $fmt($w['ytd_ss']) . '</td></tr>';
-                    echo '<tr><td>5 Med wages</td><td>$' . $fmt($w['ytd_gross']) . '</td><td>6 Med withheld</td><td>$' . $fmt($w['ytd_medicare']) . '</td></tr></table></div>';
+                    echo '<tr><td colspan="4">' . htmlspecialchars($empAddr) . '</td></tr>';
+                    echo '<tr><td>1 Wages</td><td>$' . $w1 . '</td><td>2 Federal</td><td>$' . $w2 . '</td></tr>';
+                    echo '<tr><td>3 SS wages</td><td>$' . $w1 . '</td><td>4 SS withheld</td><td>$' . $w3 . '</td></tr>';
+                    echo '<tr><td>5 Med wages</td><td>$' . $w1 . '</td><td>6 Med withheld</td><td>$' . $w4 . '</td></tr></table></div>';
                 }
                 echo '</body></html>';
                 exit;
