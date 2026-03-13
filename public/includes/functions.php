@@ -92,6 +92,17 @@ function jsonError($message, $code = 400) {
     echo json_encode(['success' => false, 'error' => $message]);
 }
 
+/** Application log: append to LOG_PATH (timestamp, level, message). Do not log passwords, SSN, or API keys. */
+function app_log($level, $message) {
+    if (!defined('LOG_PATH')) return;
+    $dir = dirname(LOG_PATH);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    $line = date('c') . ' [' . $level . '] ' . $message . "\n";
+    @file_put_contents(LOG_PATH, $line, FILE_APPEND | LOCK_EX);
+}
+
 /** Return true if $str is a valid Y-m-d date string. */
 function validateDateYmd($str) {
     if (!is_string($str) || $str === '') return false;

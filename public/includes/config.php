@@ -12,6 +12,9 @@ define('DB_TIMEOUT', 30);
 define('SESSION_NAME', 'payroll_admin');
 define('PASSWORD_COST', 12);
 define('SITE_NAME', 'Payroll');
+if (!defined('LOG_PATH')) {
+    define('LOG_PATH', __DIR__ . '/../../logs/app.log');
+}
 
 if (!defined('SITE_URL')) {
     define('SITE_URL', 'http://localhost');

@@ -19,20 +19,23 @@ function login($username, $password) {
     $stmt->bindValue(':u', $username, SQLITE3_TEXT);
     $r = $stmt->execute();
     $user = $r->fetchArray(SQLITE3_ASSOC);
-    if ($user && password_verify($password, $user['password_hash'])) {
-        session_regenerate_id(true);
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        $check = $db->prepare('SELECT first_login_done FROM admin_users WHERE id = :id');
-        $check->bindValue(':id', $user['id'], SQLITE3_INTEGER);
-        $r = $check->execute()->fetchArray(SQLITE3_ASSOC);
-        if (php_sapi_name() !== 'cli' && $r && (int)($r['first_login_done'] ?? 0) === 0) {
-            header('Location: change-password.php');
-            exit;
+    if (!$user || !password_verify($password, $user['password_hash'])) {
+        if (function_exists('app_log')) {
+            app_log('warning', 'Auth failure for username: ' . (isset($username) ? substr($username, 0, 32) : ''));
         }
-        return ['success' => true];
+        return ['success' => false, 'error' => 'Invalid username or password'];
     }
-    return ['success' => false, 'error' => 'Invalid username or password'];
+    session_regenerate_id(true);
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['username'] = $user['username'];
+    $check = $db->prepare('SELECT first_login_done FROM admin_users WHERE id = :id');
+    $check->bindValue(':id', $user['id'], SQLITE3_INTEGER);
+    $r = $check->execute()->fetchArray(SQLITE3_ASSOC);
+    if (php_sapi_name() !== 'cli' && $r && (int)($r['first_login_done'] ?? 0) === 0) {
+        header('Location: change-password.php');
+        exit;
+    }
+    return ['success' => true];
 }
 
 function logout() {

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.15] — 2026-03-12
+
+### Logging
+
+- **Structured application log (fixes #17).** LOG_PATH (default logs/app.log); app_log(level, message) in functions.php. Used for auth failures (warning) and payroll run exceptions (error). run-payroll catch logs full exception and returns generic "Payroll run failed." to client. No sensitive data logged.
+
 ## [0.3.14] — 2026-03-12
 
 ### Validation and data
