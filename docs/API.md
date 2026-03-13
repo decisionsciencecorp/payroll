@@ -22,6 +22,8 @@ Errors: `{ "success": false, "error": "message" }` with HTTP status 400, 401, 40
 
 Requests are limited per API key and IP (e.g. 60 per minute for most endpoints). When exceeded, response is **429** with `{ "success": false, "error": "Rate limit exceeded" }`.
 
+**Note:** The limit key is `action:apiKey:ip`. A compromised API key can still be used from many IPs (each IP gets its own window). For internal use this is usually acceptable; for public-facing APIs consider an additional per-key global limit.
+
 ---
 
 ## Tax bracket configuration

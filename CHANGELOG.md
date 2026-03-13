@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.12] — 2026-03-12
+
+### Documentation
+
+- **Rate limit and brute-force (fixes #10).** API.md: note that rate limit is per key+IP so one key from many IPs can multiply load. ADMIN.md: note that admin login has no brute-force protection and recommend rate limiting or lockout if exposed to the internet.
+
 ## [0.3.11] — 2026-03-12
 
 ### Security

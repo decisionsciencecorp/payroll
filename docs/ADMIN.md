@@ -70,3 +70,4 @@ The admin interface is session-based. All admin pages live under `/admin/` and r
 
 - All state-changing actions (create key, delete key, add/delete user, change password, run payroll, upload tax config, upload logo, save company settings, generate W-2) use POST with a CSRF token. The token is in the session and included in forms via a hidden field.
 - Session cookie is HTTP-only and tied to the session name `payroll_admin`. Use HTTPS in production.
+- **Admin login:** There is no brute-force protection (no lockout or captcha after failed attempts). For internal use this is often acceptable; if the admin UI is exposed to the internet, consider adding rate limiting or lockout for the login endpoint.
