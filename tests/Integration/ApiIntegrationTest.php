@@ -238,6 +238,35 @@ class ApiIntegrationTest extends TestCase
         $this->assertFalse($body['success'] ?? true);
     }
 
+    /** @see Issue #1: logo-file.php must require API key or admin session */
+    public function testLogoFileRequiresAuth(): void
+    {
+        $url = self::BASE_URL . '/api/logo-file.php';
+        $optsNoKey = [
+            'http' => [
+                'method' => 'GET',
+                'timeout' => 2,
+                'ignore_errors' => true,
+            ],
+        ];
+        $ctx = stream_context_create($optsNoKey);
+        $response = @file_get_contents($url, false, $ctx);
+        $code = 0;
+        if (isset($http_response_header[0]) && preg_match('/ (\d+) /', $http_response_header[0], $m)) {
+            $code = (int) $m[1];
+        }
+        $this->assertSame(401, $code, 'logo-file.php must return 401 when no API key or session');
+        $body = $response ? json_decode($response, true) : null;
+        $this->assertIsArray($body);
+        $this->assertArrayHasKey('error', $body);
+
+        $r = $this->request('GET', '/api/logo-file.php');
+        $this->assertContains($r['code'], [200, 404], 'With valid API key: 200 if logo exists, 404 if not');
+        if ($r['code'] === 404) {
+            $this->assertNull($r['body'] ?? null);
+        }
+    }
+
     public function testWrongMethodReturns405(): void
     {
         $r = $this->request('POST', '/api/list-tax-brackets.php');

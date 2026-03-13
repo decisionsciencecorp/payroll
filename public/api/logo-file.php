@@ -1,6 +1,19 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/auth.php';
 initializeDatabase();
+
+$apiKey = getApiKey();
+$hasKey = $apiKey && validateApiKey($apiKey);
+$hasSession = isLoggedIn();
+if (!$hasKey && !$hasSession) {
+    http_response_code(401);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Missing or invalid API key, or admin session required']);
+    exit;
+}
+
 $db = getDbConnection();
 $logoPath = $db->querySingle("SELECT logo_path FROM company_settings WHERE id = 1");
 if (!$logoPath) {

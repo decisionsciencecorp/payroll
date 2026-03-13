@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.4] — 2026-03-12
+
+### Security
+
+- **logo-file.php authentication (fixes #1).** Logo endpoint now requires either a valid API key or an admin session. Unauthenticated requests receive 401. Pay stub HTML passes the API key in the logo URL so the embedded image request is authenticated. Integration test `testLogoFileRequiresAuth` added.
+
 ## [0.3.3] — 2026-03-12
 
 ### Added

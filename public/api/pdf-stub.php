@@ -29,7 +29,10 @@ if (!$row) {
 }
 
 $logoPath = $db->querySingle("SELECT logo_path FROM company_settings WHERE id = 1");
-$logoUrl = $logoPath ? (SITE_URL . '/api/logo-file.php') : '';
+$logoUrl = '';
+if ($logoPath && $apiKey) {
+    $logoUrl = SITE_URL . '/api/logo-file.php?api_key=' . rawurlencode($apiKey);
+}
 
 $fmt = function ($n) { return number_format((float)$n, 2); };
 header('Content-Type: text/html; charset=utf-8');
