@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.17] — 2026-03-12
+
+### Security, config, API
+
+- **Logo path whitelist (fixes #22).** logo-file.php serves only `logo.png` or `logo.jpg` from company_settings; any other value returns 404. Path built from STORAGE_PATH + whitelisted name (no basename traversal).
+- **API run-payroll 500 on exception (fixes #23).** Catch block returns HTTP 500 (not 400) for unexpected server errors; client message remains generic.
+- **Docs: SSN storage and DB protection (fixes #20).** CONFIGURATION.md: SSN plaintext storage, DB file protection, optional encryption note.
+- **Docs: SITE_URL, APP_ENV, logs (fixes #21).** CONFIGURATION.md: production APP_ENV, create logs/ and LOG_PATH; LOG_PATH in constants table.
+
+## [0.3.16] — 2026-03-12
+
+### Code organization
+
+- **Split config.php concerns (fixes #18).** DB connection and schema moved to `includes/database.php`; config.php now defines constants, session, security headers, and requires database.php. Improves testability and clarity.
+
 ## [0.3.15] — 2026-03-12
 
 ### Logging
