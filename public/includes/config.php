@@ -18,6 +18,12 @@ if (!defined('SITE_URL')) {
 }
 
 if (session_status() === PHP_SESSION_NONE) {
+    $secure = defined('SITE_URL') && strpos(SITE_URL, 'https://') === 0;
+    session_set_cookie_params([
+        'httponly' => true,
+        'secure' => $secure,
+        'samesite' => 'Lax',
+    ]);
     session_name(SESSION_NAME);
     session_start();
 }

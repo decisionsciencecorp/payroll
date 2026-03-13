@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.11] — 2026-03-12
+
+### Security
+
+- **Session cookie flags (fixes #9).** Before `session_start()`, set `session_set_cookie_params()` with `httponly => true`, `secure => true` when SITE_URL is https, and `samesite => 'Lax'`.
+
 ## [0.3.10] — 2026-03-12
 
 ### Security / Documentation
