@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.9] — 2026-03-12
+
+### Security
+
+- **Security headers (fixes #7).** New `includes/security-headers.php` sets X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy, and a minimal CSP; HSTS when SITE_URL is https. Included from config so all responses get them.
+
 ## [0.3.8] — 2026-03-12
 
 ### Security

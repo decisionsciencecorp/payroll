@@ -40,6 +40,8 @@ if ($isDevelopment) {
 
 date_default_timezone_set('UTC');
 
+require_once __DIR__ . '/security-headers.php';
+
 function getDbConnection() {
     try {
         $db = new SQLite3(DB_PATH);
