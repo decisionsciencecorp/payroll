@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.10] — 2026-03-12
+
+### Security / Documentation
+
+- **API key in query string (fixes #8).** API.md now recommends using the X-API-Key header and warns that query-string keys may appear in logs, referrers, and browser history.
+
 ## [0.3.9] — 2026-03-12
 
 ### Security

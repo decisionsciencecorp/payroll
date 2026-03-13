@@ -6,8 +6,8 @@ Full reference for the REST API. All endpoints live under `/api/` and return JSO
 
 Every endpoint requires an API key. Provide it in one of these ways:
 
-1. **Header (recommended):** `X-API-Key: YOUR_API_KEY`
-2. **Query string:** `?api_key=YOUR_API_KEY`
+1. **Header (recommended):** `X-API-Key: YOUR_API_KEY` — Prefer this. Keys in the query string or URL can appear in server logs, referrer headers, and browser history; use the header when possible.
+2. **Query string:** `?api_key=YOUR_API_KEY` — Avoid in production; keys may be logged or leaked via referrers.
 3. **POST body:** For JSON bodies, include `"api_key": "YOUR_API_KEY"`; for form-encoded, include `api_key=YOUR_API_KEY`
 
 Invalid or missing key returns **401** with `{ "success": false, "error": "Invalid or missing API key" }`.
