@@ -31,7 +31,7 @@ Single-company internal payroll application. Monthly pay runs, federal income ta
 
 1. **Install:** Point the web server document root at `public/`. Ensure `db/` and `storage/` exist and are writable. See [docs/INSTALL.md](docs/INSTALL.md).
 2. **Configure:** Set `SITE_URL` in `public/includes/config.php` if needed. See [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
-3. **First run:** Open `/admin/login.php`. Log in with **admin** / **admin**, then change the password. Create an API key (Admin → API Keys). Set company name and EIN (Admin → Company). Upload tax config (Admin → Tax config or API). Add employees via API. Run payroll (Admin → Payroll).
+3. **First run:** Open `/admin/login.php`. Log in with **admin** / **admin**. You will be redirected to change the password on first login (default is insecure); then create an API key, set company, upload tax config, add employees, and run payroll. Create an API key (Admin → API Keys). Set company name and EIN (Admin → Company). Upload tax config (Admin → Tax config or API). Add employees via API. Run payroll (Admin → Payroll).
 
 **Tests:** `composer install` then `./vendor/bin/phpunit`. See [docs/TESTING.md](docs/TESTING.md). Target 90% coverage, all green.
 
@@ -96,4 +96,4 @@ payroll/
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for release history. Current release: **0.3.7**.
+See [CHANGELOG.md](CHANGELOG.md) for release history. Current release: **0.3.8**.

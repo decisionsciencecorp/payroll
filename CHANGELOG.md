@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.8] — 2026-03-12
+
+### Security
+
+- **Default admin password and first-login flow (fixes #6).** Document that the default admin/admin password must be changed immediately (INSTALL, README). Added `first_login_done` to `admin_users`; on first login (flag=0) the user is redirected to Change password and must change before using the app. Successful password change sets the flag. CLI (e.g. tests) skips redirect so `login()` still returns. Schema migration: new column in CREATE TABLE and ALTER for existing installs.
+
 ## [0.3.7] — 2026-03-12
 
 ### Security

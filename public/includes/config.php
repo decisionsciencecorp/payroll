@@ -147,9 +147,15 @@ function initializeDatabase() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            first_login_done INTEGER NOT NULL DEFAULT 0
         )
     ");
+    try {
+        $db->exec('ALTER TABLE admin_users ADD COLUMN first_login_done INTEGER NOT NULL DEFAULT 0');
+    } catch (Exception $e) {
+        // Column already exists (existing install)
+    }
 
     // Seed default admin if no users
     $r = $db->query("SELECT COUNT(*) as c FROM admin_users");

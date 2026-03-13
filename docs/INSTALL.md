@@ -69,8 +69,8 @@ chmod 755 db storage logs
 ## First run
 
 1. Open `https://your-domain/admin/login.php` in a browser.
-2. Log in with default credentials: **admin** / **admin**.
-3. **Change the password immediately:** Admin → Change password.
+2. Log in with default credentials: **admin** / **admin**. **Important:** The default password is insecure. If you have not changed it yet, you will be redirected to Change password on first login; change it before doing anything else.
+3. **Change the password immediately** if not already redirected: Admin → Change password.
 4. Create an API key: Admin → API Keys → Create (e.g. name "Scripts"). Copy and store the key; it is shown only once.
 5. Set company (employer) info: Admin → Company. Enter employer name, EIN (9 digits), and address. Required for W-2 generation.
 6. Upload tax config for the current (or upcoming) tax year: Admin → Tax config, or `POST /api/upload-tax-brackets.php` with JSON (see [TAX-CONFIG.md](TAX-CONFIG.md)).

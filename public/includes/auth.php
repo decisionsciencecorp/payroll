@@ -23,6 +23,13 @@ function login($username, $password) {
         session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
+        $check = $db->prepare('SELECT first_login_done FROM admin_users WHERE id = :id');
+        $check->bindValue(':id', $user['id'], SQLITE3_INTEGER);
+        $r = $check->execute()->fetchArray(SQLITE3_ASSOC);
+        if (php_sapi_name() !== 'cli' && $r && (int)($r['first_login_done'] ?? 0) === 0) {
+            header('Location: change-password.php');
+            exit;
+        }
         return ['success' => true];
     }
     return ['success' => false, 'error' => 'Invalid username or password'];
@@ -53,7 +60,7 @@ function changePassword($userId, $currentPassword, $newPassword) {
         return ['success' => false, 'error' => 'Current password is incorrect'];
     }
     $hash = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => PASSWORD_COST]);
-    $up = $db->prepare("UPDATE admin_users SET password_hash = :h WHERE id = :id");
+    $up = $db->prepare("UPDATE admin_users SET password_hash = :h, first_login_done = 1 WHERE id = :id");
     $up->bindValue(':h', $hash, SQLITE3_TEXT);
     $up->bindValue(':id', $userId, SQLITE3_INTEGER);
     $up->execute();
