@@ -13,6 +13,7 @@ Payroll is configured via constants and optional environment variables in `publi
 | `PASSWORD_COST` | bcrypt cost for admin passwords | `12` |
 | `SITE_NAME` | Application name (e.g. for UI) | `Payroll` |
 | `SITE_URL` | Base URL for links (pay stubs, admin) | `http://localhost` |
+| `LOG_PATH` | Path to application log file | `__DIR__ . '/../../logs/app.log'` |
 
 ## SITE_URL
 
@@ -44,7 +45,7 @@ Config checks for “development” to turn on error display:
 In development: `display_errors = 1`.  
 In production: `display_errors = 0`, `log_errors = 1`, and errors go to `logs/php-errors.log` (path relative to `includes/`: `__DIR__ . '/../../logs/php-errors.log'`).
 
-Ensure `logs/` exists and is writable if you rely on file logging.
+**Production:** Set `APP_ENV=production` (or ensure `HTTP_HOST` is not localhost) so error display is off. Create the `logs/` directory and make it writable by the web server; it is used for `php-errors.log` and for the application log `logs/app.log` (see `LOG_PATH` in config).
 
 ## Database
 
@@ -58,4 +59,9 @@ define('DB_PATH', '/var/lib/payroll/production.db');
 
 - **db/** — SQLite database and journal files.
 - **storage/** — Uploaded company logo (single file, overwritten on new upload).
-- **logs/** — Optional; used for PHP error log when not in development mode.
+- **logs/** — PHP error log and application log (`app.log`). Create the directory and make it writable in production.
+
+## Sensitive data (SSN and database)
+
+- **SSN:** Stored in plaintext in the `employees` table. Restrict filesystem access to the database file (e.g. `chmod 640`, owner/group so only the web server and backup process can read). Consider encrypting backups and any copies of the DB. For stricter compliance, application-level encryption of the SSN column (key from environment, not in repo) can be added.
+- **Database file:** Protect `db/payroll.db` from unauthorized read access; it contains SSNs, password hashes, and API keys.

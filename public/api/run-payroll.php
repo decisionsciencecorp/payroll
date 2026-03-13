@@ -113,7 +113,7 @@ try {
 } catch (Exception $e) {
     $db->exec('ROLLBACK');
     app_log('error', 'Payroll run failed: ' . $e->getMessage());
-    jsonError('Payroll run failed.', 400);
+    jsonError('Payroll run failed.', 500);
     exit;
 }
 
