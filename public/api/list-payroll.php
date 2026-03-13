@@ -25,6 +25,14 @@ if (!checkRateLimit('list_payroll:' . $apiKey . ':' . $ip, 60, 60)) {
 $employeeId = isset($_GET['employee_id']) ? (int)$_GET['employee_id'] : null;
 $from = $_GET['pay_date_from'] ?? '';
 $to = $_GET['pay_date_to'] ?? '';
+if ($from !== '' && !validateDateYmd($from)) {
+    jsonError('pay_date_from must be a valid Y-m-d date', 400);
+    exit;
+}
+if ($to !== '' && !validateDateYmd($to)) {
+    jsonError('pay_date_to must be a valid Y-m-d date', 400);
+    exit;
+}
 $limit = isset($_GET['limit']) ? min(500, max(1, (int)$_GET['limit'])) : 100;
 $offset = isset($_GET['offset']) ? max(0, (int)$_GET['offset']) : 0;
 

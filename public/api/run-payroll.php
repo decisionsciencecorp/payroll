@@ -31,6 +31,14 @@ if (!$start || !$end || !$payDate) {
     jsonError('Required: pay_period_start, pay_period_end, pay_date', 400);
     exit;
 }
+if (!validateDateYmd($start) || !validateDateYmd($end) || !validateDateYmd($payDate)) {
+    jsonError('pay_period_start, pay_period_end, and pay_date must be valid Y-m-d dates', 400);
+    exit;
+}
+if (strtotime($start) > strtotime($end)) {
+    jsonError('pay_period_start must be before or equal to pay_period_end', 400);
+    exit;
+}
 
 $year = (int)date('Y', strtotime($payDate));
 $db = getDbConnection();

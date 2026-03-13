@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.13] — 2026-03-12
+
+### Validation
+
+- **run-payroll and list-payroll date validation (fixes #11).** Added `validateDateYmd()` in functions.php. run-payroll: validate pay_period_start, pay_period_end, pay_date as Y-m-d; reject if start > end. list-payroll: validate pay_date_from and pay_date_to when provided.
+
 ## [0.3.12] — 2026-03-12
 
 ### Documentation

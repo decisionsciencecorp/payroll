@@ -92,6 +92,13 @@ function jsonError($message, $code = 400) {
     echo json_encode(['success' => false, 'error' => $message]);
 }
 
+/** Return true if $str is a valid Y-m-d date string. */
+function validateDateYmd($str) {
+    if (!is_string($str) || $str === '') return false;
+    $d = \DateTime::createFromFormat('Y-m-d', $str);
+    return $d && $d->format('Y-m-d') === $str;
+}
+
 function maskSsn($ssn) {
     $digits = preg_replace('/\D/', '', $ssn);
     if (strlen($digits) < 4) return '***-**-****';
