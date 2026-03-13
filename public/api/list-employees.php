@@ -26,7 +26,10 @@ $limit = isset($_GET['limit']) ? min(500, max(1, (int)$_GET['limit'])) : 100;
 $offset = isset($_GET['offset']) ? max(0, (int)$_GET['offset']) : 0;
 
 $db = getDbConnection();
-$r = $db->query("SELECT id, full_name, ssn, filing_status, hire_date, monthly_gross_salary, created_at FROM employees ORDER BY id LIMIT $limit OFFSET $offset");
+$stmt = $db->prepare("SELECT id, full_name, ssn, filing_status, hire_date, monthly_gross_salary, created_at FROM employees ORDER BY id LIMIT :limit OFFSET :offset");
+$stmt->bindValue(':limit', $limit, SQLITE3_INTEGER);
+$stmt->bindValue(':offset', $offset, SQLITE3_INTEGER);
+$r = $stmt->execute();
 $employees = [];
 while ($row = $r->fetchArray(SQLITE3_ASSOC)) {
     $row['ssn'] = maskSsn($row['ssn']);

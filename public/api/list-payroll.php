@@ -42,22 +42,26 @@ $params = [];
 if ($employeeId) { $where[] = 'p.employee_id = :eid'; $params[':eid'] = $employeeId; }
 if ($from) { $where[] = 'p.pay_date >= :from'; $params[':from'] = $from; }
 if ($to) { $where[] = 'p.pay_date <= :to'; $params[':to'] = $to; }
-$sql = "SELECT p.*, e.full_name as employee_name FROM payroll_history p JOIN employees e ON e.id = p.employee_id WHERE " . implode(' AND ', $where) . " ORDER BY p.pay_date DESC, p.id DESC LIMIT $limit OFFSET $offset";
-if ($params) {
-    $stmt = $db->prepare($sql);
-    foreach ($params as $k => $v) $stmt->bindValue($k, $v, SQLITE3_TEXT);
-    $r = $stmt->execute();
-} else {
-    $r = $db->query($sql);
+$params[':limit'] = $limit;
+$params[':offset'] = $offset;
+$sql = "SELECT p.*, e.full_name as employee_name FROM payroll_history p JOIN employees e ON e.id = p.employee_id WHERE " . implode(' AND ', $where) . " ORDER BY p.pay_date DESC, p.id DESC LIMIT :limit OFFSET :offset";
+$stmt = $db->prepare($sql);
+foreach ($params as $k => $v) {
+    $type = ($k === ':limit' || $k === ':offset' || $k === ':eid') ? SQLITE3_INTEGER : SQLITE3_TEXT;
+    $stmt->bindValue($k, $v, $type);
 }
+$r = $stmt->execute();
 $payroll = [];
 while ($row = $r->fetchArray(SQLITE3_ASSOC)) {
     $payroll[] = $row;
 }
 $countSql = "SELECT COUNT(*) FROM payroll_history p WHERE " . implode(' AND ', $where);
-if ($params) {
+$countParams = array_diff_key($params, [':limit' => 1, ':offset' => 1]);
+if ($countParams) {
     $stmt = $db->prepare($countSql);
-    foreach ($params as $k => $v) $stmt->bindValue($k, $v, SQLITE3_TEXT);
+    foreach ($countParams as $k => $v) {
+        $stmt->bindValue($k, $v, $k === ':eid' ? SQLITE3_INTEGER : SQLITE3_TEXT);
+    }
     $total = $stmt->execute()->fetchArray(SQLITE3_NUM)[0];
 } else {
     $total = $db->querySingle($countSql);

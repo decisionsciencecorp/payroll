@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.14] — 2026-03-12
+
+### Validation and data
+
+- **create-employee validation (fixes #12).** SSN must be exactly 9 digits; hire_date valid Y-m-d; monthly_gross_salary >= 0.
+- **update-employee validation (fixes #13).** Same rules for updated SSN, hire_date, and monthly_gross_salary when provided.
+- **API key name and company fields (fixes #14).** createApiKey: trim and max length 255 for key_name. Company settings: max lengths for employer name (255), address (255), city (100), state (50), zip (20).
+- **Bind LIMIT/OFFSET (fixes #15).** list-employees and list-payroll use bound parameters for LIMIT and OFFSET.
+- **getAllApiKeys mask; list-payroll integer (fixes #16).** getAllApiKeys() returns masked api_key (first 8 chars + …) for listing. list-payroll already binds employee_id as INTEGER; count query uses correct param types.
+
 ## [0.3.13] — 2026-03-12
 
 ### Validation

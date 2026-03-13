@@ -23,14 +23,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'EIN must be 9 digits (XX-XXXXXXX)';
     } else {
         $db = getDbConnection();
+        $a1 = substr(trim($_POST['employer_address_line1'] ?? ''), 0, 255);
+        $a2 = substr(trim($_POST['employer_address_line2'] ?? ''), 0, 255);
+        $city = substr(trim($_POST['employer_city'] ?? ''), 0, 100);
+        $state = substr(trim($_POST['employer_state'] ?? ''), 0, 50);
+        $zip = substr(trim($_POST['employer_zip'] ?? ''), 0, 20);
         $stmt = $db->prepare("UPDATE company_settings SET employer_name = :n, employer_ein = :e, employer_address_line1 = :a1, employer_address_line2 = :a2, employer_city = :city, employer_state = :state, employer_zip = :zip, updated_at = CURRENT_TIMESTAMP WHERE id = 1");
-        $stmt->bindValue(':n', $name, SQLITE3_TEXT);
+        $stmt->bindValue(':n', substr($name, 0, 255), SQLITE3_TEXT);
         $stmt->bindValue(':e', preg_replace('/\D/', '', $ein), SQLITE3_TEXT);
-        $stmt->bindValue(':a1', trim($_POST['employer_address_line1'] ?? ''), SQLITE3_TEXT);
-        $stmt->bindValue(':a2', trim($_POST['employer_address_line2'] ?? ''), SQLITE3_TEXT);
-        $stmt->bindValue(':city', trim($_POST['employer_city'] ?? ''), SQLITE3_TEXT);
-        $stmt->bindValue(':state', trim($_POST['employer_state'] ?? ''), SQLITE3_TEXT);
-        $stmt->bindValue(':zip', trim($_POST['employer_zip'] ?? ''), SQLITE3_TEXT);
+        $stmt->bindValue(':a1', $a1, SQLITE3_TEXT);
+        $stmt->bindValue(':a2', $a2, SQLITE3_TEXT);
+        $stmt->bindValue(':city', $city, SQLITE3_TEXT);
+        $stmt->bindValue(':state', $state, SQLITE3_TEXT);
+        $stmt->bindValue(':zip', $zip, SQLITE3_TEXT);
         $stmt->execute();
         $message = 'Company settings saved.';
     }

@@ -45,7 +45,21 @@ $params = [':id' => $id];
 foreach ($allowed as $f) {
     if (array_key_exists($f, $data)) {
         if ($f === 'filing_status' && !in_array($data[$f], $statuses, true)) continue;
-        if ($f === 'ssn') $data[$f] = preg_replace('/\D/', '', $data[$f]);
+        if ($f === 'ssn') {
+            $data[$f] = preg_replace('/\D/', '', $data[$f]);
+            if (strlen($data[$f]) !== 9) {
+                jsonError('ssn must be exactly 9 digits', 400);
+                exit;
+            }
+        }
+        if ($f === 'hire_date' && !validateDateYmd($data[$f])) {
+            jsonError('hire_date must be a valid Y-m-d date', 400);
+            exit;
+        }
+        if ($f === 'monthly_gross_salary' && (float)$data[$f] < 0) {
+            jsonError('monthly_gross_salary must be non-negative', 400);
+            exit;
+        }
         $updates[] = "$f = :$f";
         $params[":$f"] = $data[$f];
     }

@@ -34,6 +34,20 @@ if (!in_array($data['filing_status'], $statuses, true)) {
     jsonError('filing_status must be one of: ' . implode(', ', $statuses), 400);
     exit;
 }
+$ssnDigits = preg_replace('/\D/', '', $data['ssn']);
+if (strlen($ssnDigits) !== 9) {
+    jsonError('ssn must be exactly 9 digits', 400);
+    exit;
+}
+if (!validateDateYmd($data['hire_date'])) {
+    jsonError('hire_date must be a valid Y-m-d date', 400);
+    exit;
+}
+$salary = (float)$data['monthly_gross_salary'];
+if ($salary < 0) {
+    jsonError('monthly_gross_salary must be non-negative', 400);
+    exit;
+}
 
 $db = getDbConnection();
 $stmt = $db->prepare("
@@ -47,7 +61,7 @@ $stmt->bindValue(':s4a', isset($data['step4a_other_income']) ? (float)$data['ste
 $stmt->bindValue(':s4b', isset($data['step4b_deductions']) ? (float)$data['step4b_deductions'] : null, SQLITE3_FLOAT);
 $stmt->bindValue(':s4c', isset($data['step4c_extra_withholding']) ? (float)$data['step4c_extra_withholding'] : null, SQLITE3_FLOAT);
 $stmt->bindValue(':hire', $data['hire_date'], SQLITE3_TEXT);
-$stmt->bindValue(':sal', (float)$data['monthly_gross_salary'], SQLITE3_FLOAT);
+$stmt->bindValue(':sal', $salary, SQLITE3_FLOAT);
 $stmt->bindValue(':i9', !empty($data['i9_completed_at']) ? $data['i9_completed_at'] : null, SQLITE3_TEXT);
 $stmt->bindValue(':a1', !empty($data['address_line1']) ? $data['address_line1'] : null, SQLITE3_TEXT);
 $stmt->bindValue(':a2', !empty($data['address_line2']) ? $data['address_line2'] : null, SQLITE3_TEXT);

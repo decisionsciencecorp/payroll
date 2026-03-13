@@ -113,16 +113,23 @@ function getApiKeyForAdmin() {
     return $row ? $row['api_key'] : null;
 }
 
-// API key management (for admin)
+// API key management (for admin). Returns masked api_key (never full key) for listing.
 function getAllApiKeys() {
     $db = getDbConnection();
     $r = $db->query("SELECT id, key_name, api_key, created_at, last_used FROM api_keys ORDER BY created_at DESC");
     $out = [];
-    while ($row = $r->fetchArray(SQLITE3_ASSOC)) $out[] = $row;
+    while ($row = $r->fetchArray(SQLITE3_ASSOC)) {
+        $row['api_key'] = substr($row['api_key'], 0, 8) . '…';
+        $out[] = $row;
+    }
     return $out;
 }
 
 function createApiKey($keyName) {
+    $keyName = trim((string)$keyName);
+    if (strlen($keyName) > 255) {
+        $keyName = substr($keyName, 0, 255);
+    }
     $db = getDbConnection();
     $apiKey = bin2hex(random_bytes(32));
     $stmt = $db->prepare("INSERT INTO api_keys (key_name, api_key) VALUES (:name, :key)");
