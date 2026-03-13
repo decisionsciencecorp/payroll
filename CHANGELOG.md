@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.6] — 2026-03-12
+
+### Security
+
+- **Logout via POST with CSRF (fixes #4).** Logout is no longer triggered by GET (`?logout=1`). New `admin/logout.php` accepts only POST and validates CSRF; dashboard Logout is now a form that POSTs to it. Prevents CSRF-based logout (e.g. image tag to logout URL).
+
 ## [0.3.5] — 2026-03-12
 
 ### Security

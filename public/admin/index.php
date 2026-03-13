@@ -6,12 +6,6 @@ require_once __DIR__ . '/../includes/functions.php';
 requireAuth();
 initializeDatabase();
 
-if (isset($_GET['logout'])) {
-    logout();
-    header('Location: login.php');
-    exit;
-}
-
 $db = getDbConnection();
 $empCount = $db->querySingle("SELECT COUNT(*) FROM employees");
 $lastPay = $db->querySingle("SELECT pay_date FROM payroll_history ORDER BY pay_date DESC LIMIT 1");
@@ -46,7 +40,10 @@ $currentUser = getCurrentUser();
                     <a href="w2.php" class="btn btn-secondary">W-2</a>
                     <a href="users.php" class="btn btn-secondary">Users</a>
                     <a href="change-password.php" class="btn btn-secondary">Change password</a>
-                    <a href="?logout=1" class="btn btn-secondary">Logout</a>
+                    <form method="POST" action="logout.php" style="display:inline;">
+                        <?= csrfField() ?>
+                        <button type="submit" class="btn btn-secondary">Logout</button>
+                    </form>
                 </div>
             </div>
             <div class="info-box">

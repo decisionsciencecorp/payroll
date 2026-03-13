@@ -96,4 +96,4 @@ payroll/
 
 ## Version
 
-See [CHANGELOG.md](CHANGELOG.md) for release history. Current release: **0.3.5**.
+See [CHANGELOG.md](CHANGELOG.md) for release history. Current release: **0.3.6**.
