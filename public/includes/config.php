@@ -48,7 +48,9 @@ function getDbConnection() {
         $db->exec('PRAGMA foreign_keys = ON');
         return $db;
     } catch (Exception $e) {
-        die('Database connection failed: ' . $e->getMessage());
+        error_log('Database connection failed: ' . $e->getMessage());
+        http_response_code(500);
+        die('Service unavailable.');
     }
 }
 

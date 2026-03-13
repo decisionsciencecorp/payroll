@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.7] — 2026-03-12
+
+### Security
+
+- **Database failure no longer leaks to client (fixes #5).** `getDbConnection()` now logs the exception server-side with `error_log()` and returns HTTP 500 with a generic "Service unavailable." message to the client, without exposing path or driver details.
+
 ## [0.3.6] — 2026-03-12
 
 ### Security
