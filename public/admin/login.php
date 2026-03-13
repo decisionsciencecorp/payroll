@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 
 if (isLoggedIn()) {
     header('Location: index.php');
@@ -8,14 +9,20 @@ if (isLoggedIn()) {
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $result = login($username, $password);
+    $token = $_POST['csrf_token'] ?? '';
+    if (!verifyCsrfToken($token)) {
+        http_response_code(403);
+        $error = 'Invalid security token. Please refresh the page and try again.';
+    } else {
+        $username = $_POST['username'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $result = login($username, $password);
     if ($result['success']) {
         header('Location: index.php');
         exit;
     }
-    $error = $result['error'];
+        $error = $result['error'];
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -41,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p style="color: var(--danger); margin-bottom: 1rem;"><?= htmlspecialchars($error) ?></p>
                 <?php endif; ?>
                 <form method="POST">
+                    <?= csrfField() ?>
                     <div class="mb-2">
                         <label for="username">Username</label>
                         <input type="text" id="username" name="username" required>

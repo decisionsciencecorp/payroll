@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.5] — 2026-03-12
+
+### Security
+
+- **Login CSRF (fixes #2).** Login form now includes a CSRF token and validates it on POST. Prevents login CSRF attacks. Integration test updated to fetch token from login page and send it with the POST.
+- **Session fixation on login (fixes #3).** `session_regenerate_id(true)` is called in `login()` immediately after validating credentials and before setting session vars, invalidating any pre-set session ID.
+
 ## [0.3.4] — 2026-03-12
 
 ### Security

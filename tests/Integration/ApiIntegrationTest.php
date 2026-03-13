@@ -362,21 +362,47 @@ class ApiIntegrationTest extends TestCase
         $this->assertSame(404, $r['code']);
     }
 
-    /** Admin Users page must load without fatal (formatDate from functions.php). */
+    /** Admin Users page must load without fatal (formatDate from functions.php). Uses CSRF token for login (fixes #2). */
     public function testAdminUsersPageLoadsWithAuth(): void
     {
-        $url = self::BASE_URL . '/admin/login.php';
-        $opts = [
+        $loginUrl = self::BASE_URL . '/admin/login.php';
+        $getOpts = [
             'http' => [
-                'method' => 'POST',
-                'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
-                'content' => 'username=admin&password=admin',
+                'method' => 'GET',
                 'timeout' => 5,
                 'ignore_errors' => true,
             ],
         ];
-        $ctx = stream_context_create($opts);
-        @file_get_contents($url, false, $ctx);
+        $cookie = '';
+        $loginPage = @file_get_contents($loginUrl, false, stream_context_create($getOpts));
+        $this->assertNotFalse($loginPage);
+        if (isset($http_response_header)) {
+            foreach ($http_response_header as $h) {
+                if (stripos($h, 'Set-Cookie:') === 0) {
+                    $cookie = trim(substr($h, 11));
+                    break;
+                }
+            }
+        }
+        $csrfToken = null;
+        if (preg_match('/name="csrf_token"\s+value="([^"]+)"/', $loginPage, $m)) {
+            $csrfToken = $m[1];
+        }
+        $this->assertNotNull($csrfToken, 'Login form must include CSRF token');
+        $postOpts = [
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/x-www-form-urlencoded\r\nCookie: $cookie\r\n",
+                'content' => http_build_query([
+                    'username' => 'admin',
+                    'password' => 'admin',
+                    'csrf_token' => $csrfToken,
+                ]),
+                'timeout' => 5,
+                'ignore_errors' => true,
+            ],
+        ];
+        @file_get_contents($loginUrl, false, stream_context_create($postOpts));
         $headers = $http_response_header ?? [];
         $cookie = '';
         foreach ($headers as $h) {
