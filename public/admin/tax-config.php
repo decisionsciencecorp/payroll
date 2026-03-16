@@ -40,13 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-function getApiKeyForAdmin() {
-    $db = getDbConnection();
-    $r = $db->query("SELECT api_key FROM api_keys LIMIT 1");
-    $row = $r->fetchArray(SQLITE3_ASSOC);
-    return $row ? $row['api_key'] : null;
-}
-
 $db = getDbConnection();
 $r = $db->query("SELECT tax_year FROM tax_config ORDER BY tax_year DESC");
 $years = [];

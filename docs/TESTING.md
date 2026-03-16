@@ -77,6 +77,12 @@ tests/
     └── ApiIntegrationTest.php  # Starts server, hits /api/* endpoints
 ```
 
+## Coverage gaps
+
+- **Logo upload:** `testUploadLogoSuccess` (in ApiIntegrationTest) POSTs a file to `/api/upload-logo.php` and verifies 200 and that `GET /api/logo-file.php` returns 200. It runs only when the built-in server starts (port 8765). There is no automated test for the **admin** logo form (session + multipart); manual test that flow.
+- **Admin UI:** No automated tests for admin pages (login, dashboard, employees form, logo form, W-2, etc.). Rely on manual or browser tests.
+- **W-2 / PDF:** No test for W-2 generation or PDF pay stub content; API response codes are exercised.
+
 ## Environment
 
 When running PHPUnit, `tests/bootstrap.php` sets:

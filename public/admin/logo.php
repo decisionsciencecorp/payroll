@@ -16,14 +16,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_FILES['logo'])) {
         if (isset($allowed[$mime]) && $_FILES['logo']['size'] <= 2 * 1024 * 1024) {
             $ext = $allowed[$mime];
             $dir = STORAGE_PATH;
-            if (!is_dir($dir)) mkdir($dir, 0755, true);
-            $path = $dir . '/logo.' . $ext;
-            if (move_uploaded_file($_FILES['logo']['tmp_name'], $path)) {
-                $db = getDbConnection();
-                $db->prepare("UPDATE company_settings SET logo_path = :p, updated_at = CURRENT_TIMESTAMP WHERE id = 1")->bindValue(':p', 'logo.' . $ext, SQLITE3_TEXT)->execute();
-                $message = 'Logo updated.';
+            if (!is_dir($dir)) {
+                if (!@mkdir($dir, 0755, true)) {
+                    $message = 'Upload directory unavailable. Ensure public/uploads exists and is writable.';
+                } else {
+                    $path = $dir . '/logo.' . $ext;
+                    if (move_uploaded_file($_FILES['logo']['tmp_name'], $path)) {
+                        $db = getDbConnection();
+                        $db->prepare("UPDATE company_settings SET logo_path = :p, updated_at = CURRENT_TIMESTAMP WHERE id = 1")->bindValue(':p', 'logo.' . $ext, SQLITE3_TEXT)->execute();
+                        $message = 'Logo updated.';
+                    } else {
+                        $message = 'Failed to save file. Check public/uploads permissions.';
+                    }
+                }
             } else {
-                $message = 'Failed to save file.';
+                $path = $dir . '/logo.' . $ext;
+                if (move_uploaded_file($_FILES['logo']['tmp_name'], $path)) {
+                    $db = getDbConnection();
+                    $db->prepare("UPDATE company_settings SET logo_path = :p, updated_at = CURRENT_TIMESTAMP WHERE id = 1")->bindValue(':p', 'logo.' . $ext, SQLITE3_TEXT)->execute();
+                    $message = 'Logo updated.';
+                } else {
+                    $message = 'Failed to save file. Check public/uploads permissions.';
+                }
             }
         } else {
             $message = 'Only PNG/JPEG, max 2MB.';

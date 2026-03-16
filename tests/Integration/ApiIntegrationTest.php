@@ -84,6 +84,57 @@ class ApiIntegrationTest extends TestCase
         return ['code' => $code, 'body' => $json !== null ? $json : $response];
     }
 
+    /** POST multipart/form-data with file (name="logo") to upload-logo.php; returns code + body. */
+    private function requestUploadLogo(string $imageContent, string $filename, string $mimeType): array
+    {
+        $boundary = '----PayrollTest' . bin2hex(random_bytes(8));
+        $crlf = "\r\n";
+        $body = '--' . $boundary . $crlf
+            . 'Content-Disposition: form-data; name="logo"; filename="' . $filename . '"' . $crlf
+            . 'Content-Type: ' . $mimeType . $crlf . $crlf
+            . $imageContent . $crlf
+            . '--' . $boundary . '--' . $crlf;
+        $headers = [
+            'Content-Type' => 'multipart/form-data; boundary=' . $boundary,
+            'Content-Length' => (string) strlen($body),
+        ];
+        $url = self::BASE_URL . '/api/upload-logo.php';
+        $headerLines = ['X-API-Key: ' . self::$apiKey];
+        foreach ($headers as $k => $v) {
+            $headerLines[] = "$k: $v";
+        }
+        $opts = [
+            'http' => [
+                'method' => 'POST',
+                'header' => implode("\r\n", $headerLines),
+                'content' => $body,
+                'timeout' => 5,
+                'ignore_errors' => true,
+            ],
+        ];
+        $ctx = stream_context_create($opts);
+        $response = @file_get_contents($url, false, $ctx);
+        $code = 0;
+        if (isset($http_response_header[0]) && preg_match('/ (\d+) /', $http_response_header[0], $m)) {
+            $code = (int) $m[1];
+        }
+        $json = $response ? json_decode($response, true) : null;
+        return ['code' => $code, 'body' => $json !== null ? $json : $response];
+    }
+
+    public function testUploadLogoSuccess(): void
+    {
+        // Minimal valid 1x1 PNG (68 bytes)
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKMIQQAAAABJRU5ErkJggg==');
+        $this->assertNotEmpty($png, 'Decode test PNG');
+        $r = $this->requestUploadLogo($png, 'logo.png', 'image/png');
+        $this->assertSame(200, $r['code'], 'Upload logo should return 200: ' . json_encode($r['body'] ?? $r));
+        $this->assertIsArray($r['body']);
+        $this->assertTrue($r['body']['success'] ?? false);
+        $r2 = $this->request('GET', '/api/logo-file.php');
+        $this->assertSame(200, $r2['code'], 'After upload, logo-file.php should return 200');
+    }
+
     public function testTaxBracketsUploadListGetDelete(): void
     {
         $config = [

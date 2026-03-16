@@ -41,11 +41,22 @@ if ($_FILES['logo']['size'] > 2 * 1024 * 1024) {
 
 $ext = $allowed[$mime];
 $storageDir = STORAGE_PATH;
-if (!is_dir($storageDir)) mkdir($storageDir, 0755, true);
+if (!is_dir($storageDir)) {
+    if (!@mkdir($storageDir, 0755, true)) {
+        if (function_exists('app_log')) {
+            app_log('error', 'Logo upload: could not create directory', ['path' => $storageDir]);
+        }
+        jsonError('Upload directory unavailable. Ensure public/uploads exists and is writable.', 503);
+        exit;
+    }
+}
 $filename = 'logo.' . $ext;
 $path = $storageDir . '/' . $filename;
 if (!move_uploaded_file($_FILES['logo']['tmp_name'], $path)) {
-    jsonError('Failed to save file', 500);
+    if (function_exists('app_log')) {
+        app_log('error', 'Logo upload: move_uploaded_file failed', ['path' => $path]);
+    }
+    jsonError('Failed to save file. Check upload directory permissions.', 500);
     exit;
 }
 
