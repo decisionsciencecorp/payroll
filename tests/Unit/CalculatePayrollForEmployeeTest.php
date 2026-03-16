@@ -51,12 +51,12 @@ class CalculatePayrollForEmployeeTest extends TestCase
         $this->assertArrayHasKey('employee_medicare', $result);
         $this->assertArrayHasKey('net_pay', $result);
         $this->assertArrayHasKey('ytd_gross', $result);
-        // 10k gross: (19900-7500)*0.10 + (10000-19900)*0.12 is wrong - bracket is min/max, amount in bracket = min(taxable,max)-min(taxable,min)
-        // For 10000: bracket 0-7500: 0; 7500-19900: min(10000,19900)-min(10000,7500)=10000-7500=2500*0.10=250; 19900-57900: 0. So federal = 250
-        $this->assertSame(250.0, $result['federal_withholding']);
+        // Brackets are annual. 10k/month = 120k annual. single (3 brackets only): 0-7500@0, 7500-19900@0.1, 19900-57900@0.12.
+        // Amount above 57900 has no bracket in test config, so not taxed. Annual tax: 12400*0.1 + 38000*0.12 = 5800. Per month = 483.33
+        $this->assertSame(483.33, $result['federal_withholding']);
         $this->assertSame(620.0, $result['employee_ss']); // 10000 * 0.062
         $this->assertSame(145.0, $result['employee_medicare']); // 10000 * 0.0145
-        $this->assertSame(8985.0, $result['net_pay']);
+        $this->assertSame(8751.67, $result['net_pay']);
         $this->assertSame(10000.0, $result['ytd_gross']);
     }
 
@@ -81,8 +81,8 @@ class CalculatePayrollForEmployeeTest extends TestCase
         ];
         $config = $this->defaultConfig();
         $result = calculatePayrollForEmployee($employee, $config, 0, 0, 0, 0);
-        // 20k: married 0-15k = 0, 15k-39800: 5000*0.10 = 500
-        $this->assertSame(500.0, $result['federal_withholding']);
+        // Brackets annual. 20k/month = 240k. married: 0-15k@0, 15k-39800@0.1 → (24800)*0.1 = 2480 annual, /12 = 206.67
+        $this->assertSame(206.67, $result['federal_withholding']);
     }
 
     public function testHeadOfHouseholdUsesHeadOfHouseholdBrackets(): void
@@ -94,8 +94,8 @@ class CalculatePayrollForEmployeeTest extends TestCase
         ];
         $config = $this->defaultConfig();
         $result = calculatePayrollForEmployee($employee, $config, 0, 0, 0, 0);
-        // 0-11250: 0; 11250-27900: 3750*0.10 = 375
-        $this->assertSame(375.0, $result['federal_withholding']);
+        // Brackets annual. 15k/month = 180k. head_of_household: 0-11250@0, 11250-27900@0.1 → 16650*0.1 = 1665 annual, /12 = 138.75
+        $this->assertSame(138.75, $result['federal_withholding']);
     }
 
     public function testYtdAccumulates(): void

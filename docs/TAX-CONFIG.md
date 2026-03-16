@@ -44,11 +44,11 @@ Each bracket object:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| min | number | Lower bound of taxable wage for this bracket (monthly, dollars) |
-| max | number | Upper bound (monthly, dollars) |
+| min | number | Lower bound of taxable **annual** income for this bracket (dollars) |
+| max | number | Upper bound (**annual**, dollars; null = no cap) |
 | rate | number | Marginal rate (e.g. 0.10 for 10%) |
 
-Brackets should be in ascending order by `min`/`max`. Federal withholding is computed as the sum over brackets of (amount in bracket) × rate. Monthly gross is used (no per-check standard deduction in this MVP).
+Brackets should be in ascending order by `min`/`max`. Federal withholding: gross is annualized (monthly × 12), tax is computed on annual income using these brackets, then one period’s withholding = annual tax ÷ 12.
 
 ## Example (minimal)
 

@@ -174,16 +174,18 @@ function calculatePayrollForEmployee($employee, $config, $ytdGross, $ytdFederal,
     $brackets = $config['brackets'][$bracketKey] ?? [];
     $federal = 0;
     if (!empty($brackets)) {
-        $taxable = $gross;
-        $prevMax = 0;
+        // Brackets are annual (IRS tables). We run monthly payroll, so annualize gross, compute annual tax, then withhold 1/12.
+        $periodsPerYear = 12;
+        $annualGross = $gross * $periodsPerYear;
+        $annualTax = 0;
         foreach ($brackets as $b) {
             $min = (float)$b['min'];
             $max = isset($b['max']) && $b['max'] !== null ? (float)$b['max'] : PHP_FLOAT_MAX;
             $rate = (float)$b['rate'];
-            $amountInBracket = min($taxable, $max) - min($taxable, $min);
-            if ($amountInBracket > 0) $federal += $amountInBracket * $rate;
-            $prevMax = $max;
+            $amountInBracket = min($annualGross, $max) - min($annualGross, $min);
+            if ($amountInBracket > 0) $annualTax += $amountInBracket * $rate;
         }
+        $federal = $annualTax / $periodsPerYear;
     }
     $federal += $step4c;
 
