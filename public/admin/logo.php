@@ -23,8 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_FILES['logo'])) {
                     $path = $dir . '/logo.' . $ext;
                     if (move_uploaded_file($_FILES['logo']['tmp_name'], $path)) {
                         $db = getDbConnection();
-                        $db->prepare("UPDATE company_settings SET logo_path = :p, updated_at = CURRENT_TIMESTAMP WHERE id = 1")->bindValue(':p', 'logo.' . $ext, SQLITE3_TEXT)->execute();
-                        $message = 'Logo updated.';
+                        $stmt = $db->prepare("UPDATE company_settings SET logo_path = :p, updated_at = CURRENT_TIMESTAMP WHERE id = 1");
+                        $stmt->bindValue(':p', 'logo.' . $ext, SQLITE3_TEXT);
+                        if ($stmt->execute()) {
+                            $message = 'Logo updated.';
+                        } else {
+                            $message = 'File saved but database update failed. Try again.';
+                        }
                     } else {
                         $message = 'Failed to save file. Check public/uploads permissions.';
                     }
@@ -33,8 +38,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_FILES['logo'])) {
                 $path = $dir . '/logo.' . $ext;
                 if (move_uploaded_file($_FILES['logo']['tmp_name'], $path)) {
                     $db = getDbConnection();
-                    $db->prepare("UPDATE company_settings SET logo_path = :p, updated_at = CURRENT_TIMESTAMP WHERE id = 1")->bindValue(':p', 'logo.' . $ext, SQLITE3_TEXT)->execute();
-                    $message = 'Logo updated.';
+                    $stmt = $db->prepare("UPDATE company_settings SET logo_path = :p, updated_at = CURRENT_TIMESTAMP WHERE id = 1");
+                    $stmt->bindValue(':p', 'logo.' . $ext, SQLITE3_TEXT);
+                    if ($stmt->execute()) {
+                        $message = 'Logo updated.';
+                    } else {
+                        $message = 'File saved but database update failed. Try again.';
+                    }
                 } else {
                     $message = 'Failed to save file. Check public/uploads permissions.';
                 }
@@ -42,11 +52,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_FILES['logo'])) {
         } else {
             $message = 'Only PNG/JPEG, max 2MB.';
         }
+    } else {
+        $err = $_FILES['logo']['error'];
+        $messages = [
+            UPLOAD_ERR_INI_SIZE => 'File exceeds server limit (upload_max_filesize).',
+            UPLOAD_ERR_FORM_SIZE => 'File too large.',
+            UPLOAD_ERR_PARTIAL => 'Upload incomplete. Try again.',
+            UPLOAD_ERR_NO_FILE => 'No file selected.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Server misconfiguration: no temp directory.',
+            UPLOAD_ERR_CANT_WRITE => 'Server could not write file.',
+            UPLOAD_ERR_EXTENSION => 'Upload blocked by server extension.',
+        ];
+        $message = $messages[$err] ?? 'Upload error (code ' . $err . ').';
     }
 }
 
 $db = getDbConnection();
 $logoPath = $db->querySingle("SELECT logo_path FROM company_settings WHERE id = 1");
+// If DB says no logo but file exists on disk (e.g. update failed earlier), repair and show it
+if (!$logoPath && is_dir(STORAGE_PATH)) {
+    foreach (['logo.png', 'logo.jpg'] as $candidate) {
+        if (is_file(STORAGE_PATH . '/' . $candidate)) {
+            $stmt = $db->prepare("UPDATE company_settings SET logo_path = :p, updated_at = CURRENT_TIMESTAMP WHERE id = 1");
+            $stmt->bindValue(':p', $candidate, SQLITE3_TEXT);
+            if ($stmt->execute()) {
+                $logoPath = $candidate;
+            }
+            break;
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
