@@ -19,6 +19,7 @@
         <include>
             <directory suffix=".php">public/includes</directory>
             <directory suffix=".php">public/api</directory>
+            <directory suffix=".php">public/admin</directory>
         </include>
         <exclude>
             <file>public/includes/config.php</file>

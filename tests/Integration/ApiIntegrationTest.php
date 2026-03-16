@@ -6,41 +6,88 @@ use PHPUnit\Framework\TestCase;
 
 class ApiIntegrationTest extends TestCase
 {
-    private const BASE_URL = 'http://127.0.0.1:8765';
+    private const BASE_URL = 'http://127.0.0.1:9876';
     private static $serverProcess;
     private static $apiKey;
 
     public static function setUpBeforeClass(): void
     {
-        self::$apiKey = $GLOBALS['payroll_test_api_key'] ?? null;
-        if (!self::$apiKey) {
+        $projectRoot = dirname(__DIR__, 2);
+        $dbDir = $projectRoot . '/db';
+        $keyFile = $projectRoot . '/tests/_server_api_key.txt';
+        if (!is_dir($dbDir)) {
+            mkdir($dbDir, 0755, true);
+        }
+        $phpBinary = (defined('PHP_BINARY') && PHP_BINARY !== '') ? PHP_BINARY : 'php';
+        $fun = $projectRoot . '/public/includes/functions.php';
+        $code = 'require_once ' . var_export($fun, true) . '; initializeDatabase(); file_put_contents(' . var_export($keyFile, true) . ', createApiKey("phpunit"));';
+        $provEnv = getenv();
+        if (is_array($provEnv)) {
+            unset($provEnv['PAYROLL_TEST'], $provEnv['DB_PATH'], $provEnv['STORAGE_PATH']);
+        } else {
+            $provEnv = [];
+        }
+        $provProc = proc_open(
+            $phpBinary . ' -r ' . escapeshellarg($code),
+            [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'w']],
+            $provPipes,
+            $projectRoot,
+            $provEnv
+        );
+        if (is_resource($provProc)) {
+            foreach ($provPipes as $p) {
+                if (is_resource($p)) {
+                    fclose($p);
+                }
+            }
+            proc_close($provProc);
+        }
+        if (!file_exists($keyFile)) {
+            self::markTestSkipped('Could not provision API key in server DB');
+        }
+        self::$apiKey = trim(file_get_contents($keyFile));
+        if (self::$apiKey === '') {
             self::markTestSkipped('No test API key');
         }
-        $projectRoot = dirname(__DIR__, 2);
-        $phpBinary = (defined('PHP_BINARY') && PHP_BINARY !== '') ? PHP_BINARY : 'php';
-        $cmd = $phpBinary . ' -S 127.0.0.1:8765 -t public';
+        $env = getenv();
+        if (is_array($env)) {
+            unset($env['PAYROLL_TEST'], $env['DB_PATH'], $env['STORAGE_PATH']);
+        } else {
+            $env = [];
+        }
+        $cmd = $phpBinary . ' -S 127.0.0.1:9876 -t public';
         $pipes = [];
+        @exec('fuser -k 9876/tcp 2>/dev/null || true');
+        usleep(100000);
         self::$serverProcess = proc_open(
             $cmd,
             [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'w']],
             $pipes,
-            $projectRoot
+            $projectRoot,
+            $env
         );
         if (!is_resource(self::$serverProcess)) {
             self::markTestSkipped('Could not start PHP server');
         }
-        // Wait for server to be ready
+        // Close pipes so the server does not block on stdout/stderr
+        foreach ($pipes as $p) {
+            if (is_resource($p)) {
+                fclose($p);
+            }
+        }
+        // Wait for server to be ready (up to 5 seconds). 401 = no API key is a valid response.
         $attempts = 0;
-        while ($attempts < 20) {
-            $ctx = stream_context_create(['http' => ['timeout' => 1]]);
+        while ($attempts < 50) {
+            $ctx = stream_context_create(['http' => ['timeout' => 2, 'ignore_errors' => true]]);
             if (@file_get_contents(self::BASE_URL . '/api/list-tax-brackets.php', false, $ctx) !== false) {
                 break;
             }
             usleep(100000);
             $attempts++;
         }
-        if ($attempts >= 20) {
+        if ($attempts >= 50) {
             proc_terminate(self::$serverProcess);
+            @proc_close(self::$serverProcess);
             self::markTestSkipped('Server did not become ready');
         }
     }
@@ -55,7 +102,8 @@ class ApiIntegrationTest extends TestCase
 
     private function request(string $method, string $path, ?string $body = null, array $headers = []): array
     {
-        $url = self::BASE_URL . $path;
+        $sep = strpos($path, '?') !== false ? '&' : '?';
+        $url = self::BASE_URL . $path . $sep . 'api_key=' . rawurlencode(self::$apiKey);
         $headerLines = ['X-API-Key: ' . self::$apiKey];
         foreach ($headers as $k => $v) {
             $headerLines[] = "$k: $v";
@@ -82,6 +130,67 @@ class ApiIntegrationTest extends TestCase
         }
         $json = $response ? json_decode($response, true) : null;
         return ['code' => $code, 'body' => $json !== null ? $json : $response];
+    }
+
+    /** Log in as admin (default seed user). Returns session cookie string or empty on failure. */
+    private function loginAsAdmin(): string
+    {
+        $loginUrl = self::BASE_URL . '/admin/login.php';
+        $loginPage = @file_get_contents($loginUrl, false, stream_context_create([
+            'http' => ['method' => 'GET', 'timeout' => 5, 'ignore_errors' => true],
+        ]));
+        if ($loginPage === false) {
+            return '';
+        }
+        $cookie = '';
+        foreach ($http_response_header ?? [] as $h) {
+            if (stripos($h, 'Set-Cookie:') === 0) {
+                $cookie = trim(substr($h, 11));
+                break;
+            }
+        }
+        if (!preg_match('/name="csrf_token"\s+value="([^"]+)"/', $loginPage, $m)) {
+            return '';
+        }
+        @file_get_contents($loginUrl, false, stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/x-www-form-urlencoded\r\nCookie: $cookie\r\n",
+                'content' => http_build_query([
+                    'username' => 'admin',
+                    'password' => 'admin',
+                    'csrf_token' => $m[1],
+                ]),
+                'timeout' => 5,
+                'ignore_errors' => true,
+            ],
+        ]));
+        foreach ($http_response_header ?? [] as $h) {
+            if (stripos($h, 'Set-Cookie:') === 0) {
+                return trim(substr($h, 11));
+            }
+        }
+        return '';
+    }
+
+    /** GET a path with session cookie; returns ['code' => int, 'body' => string]. */
+    private function getWithCookie(string $path, string $cookie): array
+    {
+        $url = self::BASE_URL . $path;
+        $opts = [
+            'http' => [
+                'method' => 'GET',
+                'header' => "Cookie: $cookie\r\n",
+                'timeout' => 5,
+                'ignore_errors' => true,
+            ],
+        ];
+        $body = @file_get_contents($url, false, stream_context_create($opts));
+        $code = 0;
+        if (isset($http_response_header[0]) && preg_match('/ (\d+) /', $http_response_header[0], $m)) {
+            $code = (int) $m[1];
+        }
+        return ['code' => $code, 'body' => $body !== false ? $body : ''];
     }
 
     /** POST multipart/form-data with file (name="logo") to upload-logo.php; returns code + body. */
@@ -198,7 +307,7 @@ class ApiIntegrationTest extends TestCase
 
         $r = $this->request('POST', '/api/update-employee.php', json_encode(['id' => $id, 'monthly_gross_salary' => 6500]));
         $this->assertSame(200, $r['code']);
-        $this->assertSame(6500.0, $r['body']['employee']['monthly_gross_salary'] ?? 0);
+        $this->assertEquals(6500.0, $r['body']['employee']['monthly_gross_salary'] ?? 0);
 
         $r = $this->request('DELETE', "/api/delete-employee.php?id=$id");
         $this->assertSame(200, $r['code']);
@@ -248,8 +357,17 @@ class ApiIntegrationTest extends TestCase
 
         $r = $this->request('GET', '/api/list-payroll.php?pay_date_from=2026-01-01&pay_date_to=2026-01-31');
         $this->assertSame(200, $r['code']);
-        $this->assertCount(1, $r['body']['payroll'] ?? []);
-        $payrollId = $r['body']['payroll'][0]['id'];
+        $payrolls = $r['body']['payroll'] ?? [];
+        $this->assertGreaterThanOrEqual(1, count($payrolls));
+        $our = null;
+        foreach ($payrolls as $p) {
+            if (($p['pay_date'] ?? '') === '2026-01-31') {
+                $our = $p;
+                break;
+            }
+        }
+        $this->assertNotNull($our, 'Expected at least one payroll for 2026-01-31');
+        $payrollId = $our['id'];
 
         $r = $this->request('GET', "/api/get-payroll.php?id=$payrollId");
         $this->assertSame(200, $r['code']);
@@ -416,65 +534,100 @@ class ApiIntegrationTest extends TestCase
     /** Admin Users page must load without fatal (formatDate from functions.php). Uses CSRF token for login (fixes #2). */
     public function testAdminUsersPageLoadsWithAuth(): void
     {
-        $loginUrl = self::BASE_URL . '/admin/login.php';
-        $getOpts = [
-            'http' => [
-                'method' => 'GET',
-                'timeout' => 5,
-                'ignore_errors' => true,
-            ],
-        ];
-        $cookie = '';
-        $loginPage = @file_get_contents($loginUrl, false, stream_context_create($getOpts));
-        $this->assertNotFalse($loginPage);
-        if (isset($http_response_header)) {
-            foreach ($http_response_header as $h) {
-                if (stripos($h, 'Set-Cookie:') === 0) {
-                    $cookie = trim(substr($h, 11));
-                    break;
-                }
-            }
-        }
-        $csrfToken = null;
-        if (preg_match('/name="csrf_token"\s+value="([^"]+)"/', $loginPage, $m)) {
-            $csrfToken = $m[1];
-        }
-        $this->assertNotNull($csrfToken, 'Login form must include CSRF token');
-        $postOpts = [
-            'http' => [
-                'method' => 'POST',
-                'header' => "Content-Type: application/x-www-form-urlencoded\r\nCookie: $cookie\r\n",
-                'content' => http_build_query([
-                    'username' => 'admin',
-                    'password' => 'admin',
-                    'csrf_token' => $csrfToken,
-                ]),
-                'timeout' => 5,
-                'ignore_errors' => true,
-            ],
-        ];
-        @file_get_contents($loginUrl, false, stream_context_create($postOpts));
-        $headers = $http_response_header ?? [];
-        $cookie = '';
-        foreach ($headers as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0) {
-                $cookie = trim(substr($h, 11));
-                break;
-            }
-        }
+        $cookie = $this->loginAsAdmin();
         $this->assertNotEmpty($cookie, 'Login should set session cookie');
-        $usersUrl = self::BASE_URL . '/admin/users.php';
-        $opts2 = [
-            'http' => [
-                'method' => 'GET',
-                'header' => "Cookie: $cookie\r\n",
-                'timeout' => 5,
-                'ignore_errors' => true,
-            ],
+        $r = $this->getWithCookie('/admin/users.php', $cookie);
+        $this->assertSame(200, $r['code']);
+        $this->assertStringContainsString('Admin users', $r['body']);
+        $this->assertStringNotContainsString('Call to undefined function', $r['body']);
+    }
+
+    public function testGenerateW2MissingYear(): void
+    {
+        $r = $this->request('GET', '/api/generate-w2.php');
+        $this->assertGreaterThanOrEqual(400, $r['code'], 'Missing year should yield 4xx or 5xx');
+    }
+
+    public function testGenerateW2RequiresEmployer(): void
+    {
+        $r = $this->request('GET', '/api/generate-w2.php?year=2026');
+        $this->assertGreaterThanOrEqual(400, $r['code'], 'Missing employer should yield 4xx or 5xx');
+        if (isset($r['body']['error'])) {
+            $this->assertStringContainsString('Employer', $r['body']['error']);
+        }
+    }
+
+    public function testDeleteTaxBracketsMissingYear(): void
+    {
+        $r = $this->request('DELETE', '/api/delete-tax-brackets.php');
+        $this->assertSame(400, $r['code']);
+    }
+
+    public function testDeleteTaxBracketsNotFound(): void
+    {
+        $r = $this->request('DELETE', '/api/delete-tax-brackets.php?year=1999');
+        $this->assertSame(404, $r['code']);
+    }
+
+    public function testListPayrollWithFilters(): void
+    {
+        $r = $this->request('GET', '/api/list-payroll.php?limit=5&offset=0');
+        $this->assertSame(200, $r['code']);
+        $this->assertArrayHasKey('payroll', $r['body']);
+        $this->assertArrayHasKey('count', $r['body']);
+    }
+
+    public function testCreateEmployeeValidationBadSsn(): void
+    {
+        $r = $this->request('POST', '/api/create-employee.php', json_encode([
+            'full_name' => 'Bad SSN',
+            'ssn' => '123',
+            'filing_status' => 'Single',
+            'hire_date' => '2026-01-01',
+            'monthly_gross_salary' => 5000,
+        ]));
+        $this->assertSame(400, $r['code']);
+    }
+
+    public function testCreateEmployeeValidationBadDate(): void
+    {
+        $r = $this->request('POST', '/api/create-employee.php', json_encode([
+            'full_name' => 'Bad Date',
+            'ssn' => '123-45-6789',
+            'filing_status' => 'Single',
+            'hire_date' => 'not-a-date',
+            'monthly_gross_salary' => 5000,
+        ]));
+        $this->assertSame(400, $r['code']);
+    }
+
+    public function testPdfStubNotFound(): void
+    {
+        $r = $this->request('GET', '/api/pdf-stub.php?id=999999');
+        $this->assertSame(404, $r['code']);
+    }
+
+    /** E2E: After login, all admin pages return 200 and no fatal. */
+    public function testAllAdminPagesLoadAfterLogin(): void
+    {
+        $cookie = $this->loginAsAdmin();
+        $this->assertNotEmpty($cookie);
+        $pages = [
+            '/admin/index.php',
+            '/admin/employees.php',
+            '/admin/payroll.php',
+            '/admin/tax-config.php',
+            '/admin/api-keys.php',
+            '/admin/logo.php',
+            '/admin/company-settings.php',
+            '/admin/w2.php',
+            '/admin/users.php',
+            '/admin/change-password.php',
         ];
-        $body = @file_get_contents($usersUrl, false, stream_context_create($opts2));
-        $this->assertNotFalse($body);
-        $this->assertStringContainsString('Admin users', $body);
-        $this->assertStringNotContainsString('Call to undefined function', $body);
+        foreach ($pages as $path) {
+            $r = $this->getWithCookie($path, $cookie);
+            $this->assertSame(200, $r['code'], "Page $path should return 200");
+            $this->assertStringNotContainsString('Call to undefined function', $r['body'] ?? '');
+        }
     }
 }

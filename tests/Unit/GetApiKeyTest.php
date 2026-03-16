@@ -44,4 +44,11 @@ class GetApiKeyTest extends TestCase
     {
         $this->assertNull(getApiKey());
     }
+
+    public function testReturnsPostFormParamWhenPost(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['api_key'] = ' post-form-key ';
+        $this->assertSame('post-form-key', getApiKey());
+    }
 }

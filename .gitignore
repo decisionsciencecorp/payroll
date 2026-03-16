@@ -13,6 +13,8 @@
 
 # PHPUnit
 /build/
+.phpunit.result.cache
+tests/_server_api_key.txt
 
 # Python (SDK, Playwright)
 .venv/

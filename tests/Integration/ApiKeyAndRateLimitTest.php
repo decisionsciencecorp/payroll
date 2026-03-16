@@ -43,4 +43,29 @@ class ApiKeyAndRateLimitTest extends TestCase
         $this->assertTrue(checkRateLimit($key, 60, 60));
         $this->assertTrue(checkRateLimit($key, 60, 60));
     }
+
+    public function testCheckRateLimitExceededReturnsFalse(): void
+    {
+        $key = 'test_exceed_' . uniqid();
+        $limit = 2;
+        $this->assertTrue(checkRateLimit($key, $limit, 60));
+        $this->assertTrue(checkRateLimit($key, $limit, 60));
+        $this->assertFalse(checkRateLimit($key, $limit, 60));
+    }
+
+    public function testCheckRateLimitWindowReset(): void
+    {
+        $key = 'test_reset_' . uniqid();
+        $this->assertTrue(checkRateLimit($key, 1, 1));
+        $this->assertFalse(checkRateLimit($key, 1, 1));
+        sleep(2);
+        $this->assertTrue(checkRateLimit($key, 1, 1));
+    }
+
+    public function testGetApiKeyForAdminReturnsKeyWhenExists(): void
+    {
+        $key = getApiKeyForAdmin();
+        $this->assertNotEmpty($key);
+        $this->assertTrue(validateApiKey($key));
+    }
 }

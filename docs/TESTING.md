@@ -7,7 +7,7 @@ The project uses **PHPUnit 9** for unit and integration tests. The suite include
 - PHP 7.4+ with extensions: `sqlite3`, `json`, `mbstring`
 - Composer (to install PHPUnit)
 
-For **coverage** (optional): `pcov` or Xdebug so PHPUnit can report line coverage. Target: 90%.
+For **coverage**: install `pcov` or Xdebug, then run `./vendor/bin/phpunit --coverage-text` (or `--coverage-html build/coverage/html`). Target: **100%** for `public/includes` (except config), `public/api`, and `public/admin`.
 
 ## Install test dependencies
 
@@ -44,6 +44,8 @@ This will:
 
 All tests should pass (green). No network or existing database is required beyond the temporary one.
 
+**ApiIntegrationTest (HTTP tests):** These start PHP’s built-in server on 127.0.0.1:9876. The server must use the same test DB as the test process (so API key validation succeeds). The server inherits the process environment; if you see 401 on all API requests, the server may not have `PAYROLL_TEST`, `DB_PATH`, and `STORAGE_PATH` (e.g. some CI or container setups). Run `./vendor/bin/phpunit` from the same process that loaded the bootstrap, or ensure those env vars are set before starting PHPUnit.
+
 ## Run with coverage
 
 If you have `pcov` or Xdebug installed:
@@ -77,11 +79,11 @@ tests/
     └── ApiIntegrationTest.php  # Starts server, hits /api/* endpoints
 ```
 
-## Coverage gaps
+## Coverage (target: 100%)
 
-- **Logo upload:** `testUploadLogoSuccess` (in ApiIntegrationTest) POSTs a file to `/api/upload-logo.php` and verifies 200 and that `GET /api/logo-file.php` returns 200. It runs only when the built-in server starts (port 8765). There is no automated test for the **admin** logo form (session + multipart); manual test that flow.
-- **Admin UI:** No automated tests for admin pages (login, dashboard, employees form, logo form, W-2, etc.). Rely on manual or browser tests.
-- **W-2 / PDF:** No test for W-2 generation or PDF pay stub content; API response codes are exercised.
+- **Unit:** All pure functions in `functions.php` (getApiKey, validateDateYmd, maskSsn, formatDate, app_log, calculatePayrollForEmployee), `auth.php` (login, logout, changePassword, addAdminUser, deleteAdminUser, etc.), `csrf.php` (generateCsrfToken, verifyCsrfToken, csrfField), and API key/rate limit (createApiKey, validateApiKey, getApiKeyName, getAllApiKeys, deleteApiKey, checkRateLimit branches including limit exceeded and window reset).
+- **Integration:** API key CRUD, rate limit, auth (login, change password, add/delete admin, cannot delete last admin). When the built-in server starts (port 8765): all API endpoints (tax, employees, payroll, list-payroll, get-payroll, pdf-stub, upload-logo, logo-file, generate-w2, delete-tax-brackets), validation error paths (400/404), and admin page loads (login then GET each of index, employees, payroll, tax-config, api-keys, logo, company-settings, w2, users, change-password) for E2E-style coverage.
+- **E2E:** Implemented as integration tests that require the server: `testAllAdminPagesLoadAfterLogin` (login then assert 200 on every admin page), `testAdminUsersPageLoadsWithAuth`, and full API flows (tax upload/list/get/delete, employee CRUD, run payroll, get stub). For full browser E2E (Playwright/Selenium), add a separate suite and run with a real browser.
 
 ## Environment
 

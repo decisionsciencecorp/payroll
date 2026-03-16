@@ -20,3 +20,4 @@ require_once __DIR__ . '/../public/includes/functions.php';
 
 // Create a persistent API key for integration tests (same DB used by built-in server)
 $GLOBALS['payroll_test_api_key'] = createApiKey('phpunit');
+$GLOBALS['payroll_test_db_path'] = $testDir . '/payroll.db';
