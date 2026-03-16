@@ -17,8 +17,23 @@ if (!defined('LOG_PATH')) {
     define('LOG_PATH', __DIR__ . '/../../logs/app.log');
 }
 
+require_once __DIR__ . '/database.php';
+initializeDatabase();
 if (!defined('SITE_URL')) {
-    define('SITE_URL', 'http://localhost');
+    $db = getDbConnection();
+    $row = $db->querySingle("SELECT site_url FROM company_settings WHERE id = 1", true);
+    $siteUrl = (!empty($row['site_url']) && is_string($row['site_url'])) ? trim($row['site_url']) : '';
+    if ($siteUrl !== '') {
+        define('SITE_URL', rtrim($siteUrl, '/'));
+    } else {
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        if ($host !== '') {
+            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            define('SITE_URL', $scheme . '://' . $host);
+        } else {
+            define('SITE_URL', 'http://localhost');
+        }
+    }
 }
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -51,4 +66,3 @@ if ($isDevelopment) {
 date_default_timezone_set('UTC');
 
 require_once __DIR__ . '/security-headers.php';
-require_once __DIR__ . '/database.php';

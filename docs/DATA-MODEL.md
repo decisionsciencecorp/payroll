@@ -90,12 +90,13 @@ One row per tax year. Stores the full JSON config for that year.
 
 ### company_settings
 
-Single row (id = 1) for the one company (employer).
+Single row (id = 1) for the one company (employer) and app config.
 
 | Column                  | Type    | Description        |
 |-------------------------|---------|--------------------|
 | id                      | INTEGER | Always 1           |
 | logo_path               | TEXT    | Filename in storage (e.g. logo.png) |
+| site_url                | TEXT    | Base URL for this installation (e.g. https://payroll.example.com). Used for admin→API calls and pay stub links. Blank = localhost. |
 | employer_name           | TEXT    | For W-2 and stubs  |
 | employer_ein            | TEXT    | 9 digits           |
 | employer_address_line1 | TEXT    |                    |

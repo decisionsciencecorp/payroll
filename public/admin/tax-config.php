@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $curlErr = curl_error($ch);
             curl_close($ch);
             if ($curlErr) {
-                $error = 'Request failed: ' . $curlErr . (strpos(SITE_URL, 'localhost') !== false ? ' (check SITE_URL in config — use the URL you use to open the admin)' : '');
+                $error = 'Request failed: ' . $curlErr . (strpos(SITE_URL, 'localhost') !== false ? ' (set Site URL in Admin → Company settings)' : '');
             } elseif ($resp === false || $resp === '') {
                 $error = 'Empty response from API';
             } else {

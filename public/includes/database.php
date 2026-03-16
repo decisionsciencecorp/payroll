@@ -91,6 +91,7 @@ function initializeDatabase() {
         CREATE TABLE IF NOT EXISTS company_settings (
             id INTEGER PRIMARY KEY CHECK(id = 1),
             logo_path TEXT,
+            site_url TEXT,
             employer_name TEXT,
             employer_ein TEXT,
             employer_address_line1 TEXT,
@@ -102,6 +103,11 @@ function initializeDatabase() {
         )
     ");
     $db->exec("INSERT OR IGNORE INTO company_settings (id) VALUES (1)");
+    try {
+        $db->exec('ALTER TABLE company_settings ADD COLUMN site_url TEXT');
+    } catch (Exception $e) {
+        // Column already exists (existing install)
+    }
 
     $db->exec("
         CREATE TABLE IF NOT EXISTS admin_users (

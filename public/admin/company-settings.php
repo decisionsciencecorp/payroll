@@ -11,16 +11,25 @@ function validateEin($ein) {
     return strlen($digits) === 9;
 }
 
+function validateSiteUrl($url) {
+    $url = trim($url);
+    if ($url === '') return true;
+    return (bool) filter_var($url, FILTER_VALIDATE_URL);
+}
+
 $message = '';
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireCsrfToken();
     $name = trim($_POST['employer_name'] ?? '');
     $ein = trim($_POST['employer_ein'] ?? '');
+    $siteUrl = trim($_POST['site_url'] ?? '');
     if (empty($name)) {
         $error = 'Employer name required';
     } elseif (!validateEin($ein)) {
         $error = 'EIN must be 9 digits (XX-XXXXXXX)';
+    } elseif (!validateSiteUrl($siteUrl)) {
+        $error = 'Site URL must be a valid URL (e.g. https://payroll.example.com) or leave blank for localhost';
     } else {
         $db = getDbConnection();
         $a1 = substr(trim($_POST['employer_address_line1'] ?? ''), 0, 255);
@@ -28,9 +37,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $city = substr(trim($_POST['employer_city'] ?? ''), 0, 100);
         $state = substr(trim($_POST['employer_state'] ?? ''), 0, 50);
         $zip = substr(trim($_POST['employer_zip'] ?? ''), 0, 20);
-        $stmt = $db->prepare("UPDATE company_settings SET employer_name = :n, employer_ein = :e, employer_address_line1 = :a1, employer_address_line2 = :a2, employer_city = :city, employer_state = :state, employer_zip = :zip, updated_at = CURRENT_TIMESTAMP WHERE id = 1");
+        $siteUrlStored = $siteUrl !== '' ? substr(rtrim($siteUrl, '/'), 0, 500) : null;
+        $stmt = $db->prepare("UPDATE company_settings SET employer_name = :n, employer_ein = :e, site_url = :site_url, employer_address_line1 = :a1, employer_address_line2 = :a2, employer_city = :city, employer_state = :state, employer_zip = :zip, updated_at = CURRENT_TIMESTAMP WHERE id = 1");
         $stmt->bindValue(':n', substr($name, 0, 255), SQLITE3_TEXT);
         $stmt->bindValue(':e', preg_replace('/\D/', '', $ein), SQLITE3_TEXT);
+        $stmt->bindValue(':site_url', $siteUrlStored, $siteUrlStored === null ? SQLITE3_NULL : SQLITE3_TEXT);
         $stmt->bindValue(':a1', $a1, SQLITE3_TEXT);
         $stmt->bindValue(':a2', $a2, SQLITE3_TEXT);
         $stmt->bindValue(':city', $city, SQLITE3_TEXT);
@@ -42,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $db = getDbConnection();
-$row = $db->querySingle("SELECT employer_name, employer_ein, employer_address_line1, employer_address_line2, employer_city, employer_state, employer_zip FROM company_settings WHERE id = 1", true);
+$row = $db->querySingle("SELECT employer_name, employer_ein, site_url, employer_address_line1, employer_address_line2, employer_city, employer_state, employer_zip FROM company_settings WHERE id = 1", true);
 $row = $row ?: [];
 ?>
 <!DOCTYPE html>
@@ -70,6 +81,11 @@ $row = $row ?: [];
             <?php if ($error): ?><div class="info-box" style="color: var(--danger);"><?= htmlspecialchars($error) ?></div><?php endif; ?>
             <form method="POST" class="info-box">
                 <?= csrfField() ?>
+                <div class="mb-2">
+                    <label for="site_url">Site URL</label>
+                    <input type="url" id="site_url" name="site_url" value="<?= htmlspecialchars($row['site_url'] ?? '') ?>" placeholder="https://payroll.decisionsciencecorp.com">
+                    <small style="display:block; color: var(--muted, #666);">Base URL for this installation. Leave blank to auto-detect from the current request. Set only to override (e.g. behind a proxy).</small>
+                </div>
                 <div class="mb-2">
                     <label for="employer_name">Employer name</label>
                     <input type="text" id="employer_name" name="employer_name" value="<?= htmlspecialchars($row['employer_name'] ?? '') ?>" required>

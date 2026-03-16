@@ -1,8 +1,8 @@
 # Configuration
 
-Payroll is configured via constants and optional environment variables in `public/includes/config.php`.
+Payroll keeps **all config and variables in the database**. Path constants (DB, storage, logs) are set in `public/includes/config.php`; everything else is in DB.
 
-## Constants (config.php)
+## Constants (config.php, paths only)
 
 | Constant | Description | Default |
 |----------|-------------|---------|
@@ -12,28 +12,15 @@ Payroll is configured via constants and optional environment variables in `publi
 | `SESSION_NAME` | PHP session name for admin | `payroll_admin` |
 | `PASSWORD_COST` | bcrypt cost for admin passwords | `12` |
 | `SITE_NAME` | Application name (e.g. for UI) | `Payroll` |
-| `SITE_URL` | Base URL for links (pay stubs, admin) | `http://localhost` |
 | `LOG_PATH` | Path to application log file | `__DIR__ . '/../../logs/app.log'` |
 
-## SITE_URL
+## SITE_URL (from database or request)
 
-Set `SITE_URL` to the public base URL of your installation (e.g. `https://payroll.example.com`). It is used for:
+`SITE_URL` is used for admin server-side API calls (tax config upload, run payroll), pay stub links, and logo URL in stubs.
 
-- Links in the admin UI (e.g. to the API or pay stub)
-- Pay stub HTML that references the logo (`/api/logo-file.php`)
-
-If you serve the app in a subdirectory, include it: `https://example.com/payroll`.
-
-## Overriding SITE_URL
-
-You can define `SITE_URL` before loading config (e.g. in a bootstrap file or via `auto_prepend_file`):
-
-```php
-define('SITE_URL', 'https://payroll.mycompany.com');
-require_once __DIR__ . '/includes/config.php';
-```
-
-Or set the environment variable `APP_ENV` to influence development vs production behavior (see below).
+- **If set in Admin → Company settings → Site URL:** that value is used (lets you override when behind a proxy or using a different public URL).
+- **If blank:** the app derives it from the current request (`https` or `http` + the `Host` header). So visiting `https://payroll.example.com` makes SITE_URL `https://payroll.example.com` with no config.
+- **CLI / no request (e.g. tests):** falls back to `http://localhost`.
 
 ## Development vs production
 
