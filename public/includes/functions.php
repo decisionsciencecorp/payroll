@@ -178,7 +178,7 @@ function calculatePayrollForEmployee($employee, $config, $ytdGross, $ytdFederal,
         $prevMax = 0;
         foreach ($brackets as $b) {
             $min = (float)$b['min'];
-            $max = (float)$b['max'];
+            $max = isset($b['max']) && $b['max'] !== null ? (float)$b['max'] : PHP_FLOAT_MAX;
             $rate = (float)$b['rate'];
             $amountInBracket = min($taxable, $max) - min($taxable, $min);
             if ($amountInBracket > 0) $federal += $amountInBracket * $rate;

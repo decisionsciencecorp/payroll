@@ -60,8 +60,8 @@ foreach (['single', 'married', 'head_of_household'] as $status) {
         exit;
     }
     foreach ($brackets[$status] as $b) {
-        if (!isset($b['min'], $b['max'], $b['rate'])) {
-            jsonError("Each bracket must have min, max, rate", 400);
+        if (!isset($b['min'], $b['rate']) || !array_key_exists('max', $b)) {
+            jsonError("Each bracket must have min, max (or null for top bracket), and rate", 400);
             exit;
         }
     }

@@ -26,15 +26,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 CURLOPT_POSTFIELDS => $json,
                 CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-API-Key: ' . $apiKey],
                 CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 30,
             ]);
             $resp = curl_exec($ch);
             $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlErr = curl_error($ch);
             curl_close($ch);
-            $dec = json_decode($resp, true);
-            if ($code >= 200 && $code < 300 && !empty($dec['success'])) {
-                $message = 'Tax config saved for year ' . ($data['year'] ?? '');
+            if ($curlErr) {
+                $error = 'Request failed: ' . $curlErr . (strpos(SITE_URL, 'localhost') !== false ? ' (check SITE_URL in config — use the URL you use to open the admin)' : '');
+            } elseif ($resp === false || $resp === '') {
+                $error = 'Empty response from API';
             } else {
-                $error = $dec['error'] ?? 'Upload failed';
+                $dec = json_decode($resp, true);
+                if ($code >= 200 && $code < 300 && !empty($dec['success'])) {
+                    $message = 'Tax config saved for year ' . ($data['year'] ?? '');
+                } else {
+                    $error = $dec['error'] ?? ($dec['message'] ?? 'Upload failed (HTTP ' . $code . ')');
+                    if ($dec === null && $resp !== '') {
+                        $error .= ' — response was not JSON. ' . substr(preg_replace('/\s+/', ' ', strip_tags($resp)), 0, 200);
+                    }
+                }
             }
         }
     }
