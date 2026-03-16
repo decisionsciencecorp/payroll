@@ -6,7 +6,8 @@ if (getenv('PAYROLL_TEST') && getenv('DB_PATH')) {
     define('STORAGE_PATH', getenv('STORAGE_PATH') ?: (sys_get_temp_dir() . '/payroll_storage'));
 } else {
     define('DB_PATH', __DIR__ . '/../../db/payroll.db');
-    define('STORAGE_PATH', __DIR__ . '/../../storage');
+    // Host requirement: user uploads must live in public/uploads/ to persist across deployments.
+    define('STORAGE_PATH', __DIR__ . '/../uploads');
 }
 define('DB_TIMEOUT', 30);
 define('SESSION_NAME', 'payroll_admin');

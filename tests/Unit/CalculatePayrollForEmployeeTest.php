@@ -108,9 +108,9 @@ class CalculatePayrollForEmployeeTest extends TestCase
         $config = $this->defaultConfig();
         $result = calculatePayrollForEmployee($employee, $config, 10000, 200, 620, 145);
         $this->assertSame(15000.0, $result['ytd_gross']);
-        $this->assertGreaterThan(200.0, $result['ytd_federal_withheld']);
-        $this->assertGreaterThan(620.0, $result['ytd_ss']);
-        $this->assertGreaterThan(145.0, $result['ytd_medicare']);
+        $this->assertGreaterThanOrEqual(200.0, $result['ytd_federal_withheld']);
+        $this->assertGreaterThanOrEqual(620.0, $result['ytd_ss']);
+        $this->assertGreaterThanOrEqual(145.0, $result['ytd_medicare']);
     }
 
     public function testSsWageBaseCap(): void

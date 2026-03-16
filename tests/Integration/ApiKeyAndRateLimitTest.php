@@ -23,9 +23,17 @@ class ApiKeyAndRateLimitTest extends TestCase
         createApiKey('For delete test');
         $all2 = getAllApiKeys();
         $this->assertCount($countBefore + 1, $all2);
-        $last = end($all2);
-        $this->assertSame('For delete test', $last['key_name']);
-        deleteApiKey($last['id']);
+        // Newest first (ORDER BY created_at DESC); find the key we just created
+        $created = null;
+        foreach ($all2 as $row) {
+            if ($row['key_name'] === 'For delete test') {
+                $created = $row;
+                break;
+            }
+        }
+        $this->assertNotNull($created, 'Created key should appear in list');
+        $this->assertSame('For delete test', $created['key_name']);
+        deleteApiKey($created['id']);
         $this->assertCount($countBefore, getAllApiKeys());
     }
 

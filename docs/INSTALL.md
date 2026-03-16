@@ -6,7 +6,7 @@ This guide covers installing Payroll, configuring the web server, and completing
 
 - **PHP** 7.4 or later with extensions: `sqlite3`, `json`, `mbstring`, `curl` (for admin calls to API), `fileinfo` (for logo upload)
 - **Web server:** Nginx (recommended) or Apache with PHP-FPM. Document root must point to the `public/` directory.
-- **Writable directories:** The web server user must be able to create and write files in `db/`, `storage/`, and optionally `logs/`.
+- **Writable directories:** The web server user must be able to create and write files in `db/`, `public/uploads/`, and optionally `logs/`.
 
 ## Directory layout
 
@@ -19,13 +19,16 @@ payroll/
 │   ├── admin/       ← Admin UI (*.php)
 │   ├── includes/    ← config.php, functions.php, auth.php, csrf.php
 │   └── css/
-├── db/              ← SQLite database (created on first run)
-├── storage/         ← Uploaded logo (created on first upload)
-├── logs/            ← Optional PHP error log
+├── db/                  ← SQLite database (created on first run)
+├── public/
+│   └── uploads/         ← User uploads (logo, future W-4/I-9); must be here for host deploy preservation
+├── logs/                ← Optional PHP error log
 └── docs/
 ```
 
-**Important:** Do not expose `db/`, `storage/`, or the project root above `public/` to the web. Only `public/` should be the document root.
+**Important:** Do not expose `db/` or the project root above `public/` to the web. Only `public/` should be the document root. Uploads live in `public/uploads/` but are served only via authenticated scripts (e.g. `/api/logo-file.php`), not by direct URL.
+
+**Host (LEMP deploy):** If you deploy using our LEMP stack, uploads **must** be at `public/uploads/` so they are preserved across deployments. See [GITHUB_REPO_SETUP_INSTRUCTIONS](https://github.com/actuallyrizzn/vinny-website/blob/main/docs/GITHUB_REPO_SETUP_INSTRUCTIONS.md).
 
 ## Nginx
 
@@ -61,9 +64,9 @@ Create directories and set ownership so the web server user can write:
 
 ```bash
 cd /path/to/payroll
-mkdir -p db storage logs
-chown -R www-data:www-data db storage logs   # replace www-data with your server user
-chmod 755 db storage logs
+mkdir -p db public/uploads logs
+chown -R www-data:www-data db public/uploads logs   # replace www-data with your server user
+chmod 755 db public/uploads logs
 ```
 
 ## First run
@@ -92,5 +95,5 @@ Then you can integrate TCPDF in `public/api/pdf-stub.php` and W-2 generation. Ou
 
 - **Blank page or 500:** Enable PHP error display temporarily in `public/includes/config.php` (development mode) or check `logs/` and the web server error log.
 - **Database error:** Ensure `db/` exists and is writable. The app creates `db/payroll.db` on first request.
-- **Logo upload fails:** Ensure `storage/` exists and is writable.
+- **Logo upload fails:** Ensure `public/uploads/` exists and is writable.
 - **Admin “Run payroll” or “Upload tax config” fails:** Create at least one API key in Admin → API Keys; the admin UI uses the first available key to call the API.

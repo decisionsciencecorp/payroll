@@ -3,6 +3,8 @@
 /db/*.db-journal
 /storage/*
 !/storage/.gitkeep
+/public/uploads/*
+!/public/uploads/.gitkeep
 /logs/*
 !/logs/.gitkeep
 

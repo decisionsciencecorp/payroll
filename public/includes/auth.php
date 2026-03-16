@@ -25,7 +25,9 @@ function login($username, $password) {
         }
         return ['success' => false, 'error' => 'Invalid username or password'];
     }
-    session_regenerate_id(true);
+    if (php_sapi_name() !== 'cli') {
+        session_regenerate_id(true);
+    }
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
     $check = $db->prepare('SELECT first_login_done FROM admin_users WHERE id = :id');

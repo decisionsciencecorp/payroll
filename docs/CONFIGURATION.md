@@ -7,7 +7,7 @@ Payroll is configured via constants and optional environment variables in `publi
 | Constant | Description | Default |
 |----------|-------------|---------|
 | `DB_PATH` | Full path to the SQLite database file | `__DIR__ . '/../../db/payroll.db'` |
-| `STORAGE_PATH` | Directory for uploaded logo | `__DIR__ . '/../../storage'` |
+| `STORAGE_PATH` | Directory for uploaded files (logo, future W-4/I-9) | `public/uploads/` (path from includes: `__DIR__ . '/../uploads'`) |
 | `DB_TIMEOUT` | SQLite busy timeout (seconds) | `30` |
 | `SESSION_NAME` | PHP session name for admin | `payroll_admin` |
 | `PASSWORD_COST` | bcrypt cost for admin passwords | `12` |
@@ -58,7 +58,7 @@ define('DB_PATH', '/var/lib/payroll/production.db');
 ## Writable paths
 
 - **db/** — SQLite database and journal files.
-- **storage/** — Uploaded company logo (single file, overwritten on new upload).
+- **public/uploads/** — All user uploads (company logo, and future W-4/I-9 documents). **Must** be at `public/uploads/` to conform to our LEMP host: uploads are preserved across deployments only when under `public/uploads/`. Do not commit uploaded files; serve them via authenticated scripts (e.g. `/api/logo-file.php`) so they are not directly browsable.
 - **logs/** — PHP error log and application log (`app.log`). Create the directory and make it writable in production.
 
 ## Sensitive data (SSN and database)
