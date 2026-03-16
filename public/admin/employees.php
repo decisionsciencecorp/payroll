@@ -68,6 +68,7 @@ while ($row = $r->fetchArray(SQLITE3_ASSOC)) {
             <div class="flex" style="justify-content: space-between; margin-bottom: 2rem;">
                 <h1>Employees</h1>
                 <div class="flex">
+                    <a href="compliance.php" class="btn btn-secondary">Compliance (W-4 / I-9)</a>
                     <a href="employee-form.php" class="btn">Add employee</a>
                     <a href="index.php" class="btn btn-secondary">Back</a>
                 </div>

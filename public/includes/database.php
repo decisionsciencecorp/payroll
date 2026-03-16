@@ -51,10 +51,18 @@ function initializeDatabase() {
             city TEXT,
             state TEXT,
             zip TEXT,
+            w4_file_path TEXT,
+            w4_uploaded_at DATETIME,
+            i9_file_path TEXT,
+            i9_uploaded_at DATETIME,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ");
+    try { $db->exec('ALTER TABLE employees ADD COLUMN w4_file_path TEXT'); } catch (Exception $e) { /* exists */ }
+    try { $db->exec('ALTER TABLE employees ADD COLUMN w4_uploaded_at DATETIME'); } catch (Exception $e) { /* exists */ }
+    try { $db->exec('ALTER TABLE employees ADD COLUMN i9_file_path TEXT'); } catch (Exception $e) { /* exists */ }
+    try { $db->exec('ALTER TABLE employees ADD COLUMN i9_uploaded_at DATETIME'); } catch (Exception $e) { /* exists */ }
     $db->exec("
         CREATE TABLE IF NOT EXISTS payroll_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

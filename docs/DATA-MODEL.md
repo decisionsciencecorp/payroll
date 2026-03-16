@@ -47,6 +47,10 @@ One row per employee.
 | city                 | TEXT    | Optional; required for W-2 |
 | state                | TEXT    | Optional; required for W-2 |
 | zip                  | TEXT    | Optional; required for W-2 |
+| w4_file_path         | TEXT    | Filename of signed W-4 in uploads/employees/{id}/ (e.g. w4.pdf) |
+| w4_uploaded_at       | DATETIME| When W-4 was uploaded |
+| i9_file_path         | TEXT    | Filename of completed I-9 in uploads/employees/{id}/ |
+| i9_uploaded_at       | DATETIME| When I-9 was uploaded |
 | created_at           | DATETIME| Set on insert |
 | updated_at           | DATETIME| Set on update |
 

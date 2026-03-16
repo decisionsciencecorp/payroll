@@ -32,6 +32,7 @@ $currentUser = getCurrentUser();
                 <h1>Dashboard</h1>
                 <div class="flex">
                     <a href="employees.php" class="btn btn-secondary">Employees</a>
+                    <a href="compliance.php" class="btn btn-secondary">Compliance</a>
                     <a href="payroll.php" class="btn btn-secondary">Payroll</a>
                     <a href="tax-config.php" class="btn btn-secondary">Tax config</a>
                     <a href="api-keys.php" class="btn btn-secondary">API Keys</a>

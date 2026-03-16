@@ -225,3 +225,51 @@ function calculatePayrollForEmployee($employee, $config, $ytdGross, $ytdFederal,
         'ytd_medicare' => round($ytdMedicare + $employeeMedicare, 2),
     ];
 }
+
+if (!defined('EMPLOYEE_DOC_MAX_BYTES')) {
+    define('EMPLOYEE_DOC_MAX_BYTES', 5 * 1024 * 1024);
+}
+
+/** Allowed MIME types and extension for employee docs (W-4, I-9). */
+$EMPLOYEE_DOC_ALLOWED = ['application/pdf' => 'pdf', 'image/jpeg' => 'jpg', 'image/png' => 'png'];
+
+/**
+ * Save an uploaded employee document (W-4 or I-9). Replaces existing.
+ * Returns [ true, null ] or [ false, error_message ].
+ */
+function saveEmployeeDocument($employeeId, $docType, $fileKey = 'document') {
+    global $EMPLOYEE_DOC_ALLOWED;
+    if (!in_array($docType, ['w4', 'i9'], true) || empty($_FILES[$fileKey]) || $_FILES[$fileKey]['error'] !== UPLOAD_ERR_OK) {
+        return [false, 'No file uploaded or upload error.'];
+    }
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime = $finfo->file($_FILES[$fileKey]['tmp_name']);
+    if (!isset($EMPLOYEE_DOC_ALLOWED[$mime])) {
+        return [false, 'Only PDF, JPEG, and PNG allowed.'];
+    }
+    if ($_FILES[$fileKey]['size'] > EMPLOYEE_DOC_MAX_BYTES) {
+        return [false, 'Max size 5MB.'];
+    }
+    $ext = $EMPLOYEE_DOC_ALLOWED[$mime];
+    $filename = $docType . '.' . $ext;
+    $baseDir = STORAGE_PATH . '/employees/' . (int)$employeeId;
+    if (!is_dir($baseDir)) {
+        if (!@mkdir($baseDir, 0755, true)) {
+            return [false, 'Could not create upload directory.'];
+        }
+    }
+    $path = $baseDir . '/' . $filename;
+    if (!move_uploaded_file($_FILES[$fileKey]['tmp_name'], $path)) {
+        return [false, 'Could not save file.'];
+    }
+    $db = getDbConnection();
+    $colPath = $docType === 'w4' ? 'w4_file_path' : 'i9_file_path';
+    $colAt = $docType === 'w4' ? 'w4_uploaded_at' : 'i9_uploaded_at';
+    $stmt = $db->prepare("UPDATE employees SET $colPath = :path, $colAt = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
+    $stmt->bindValue(':path', $filename, SQLITE3_TEXT);
+    $stmt->bindValue(':id', $employeeId, SQLITE3_INTEGER);
+    if (!$stmt->execute()) {
+        return [false, 'Database update failed.'];
+    }
+    return [true, null];
+}

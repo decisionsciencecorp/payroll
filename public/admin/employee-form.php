@@ -26,7 +26,33 @@ if ($id) {
 
 $error = '';
 $message = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $id) {
+    requireCsrfToken();
+    if (isset($_POST['action'])) {
+        if ($_POST['action'] === 'upload_w4') {
+            list($ok, $err) = saveEmployeeDocument($id, 'w4', 'w4_file');
+            if ($ok) {
+                $message = 'W-4 uploaded.';
+                $stmt = getDbConnection()->prepare("SELECT * FROM employees WHERE id = :id");
+                $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+                $employee = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+            } else {
+                $error = $err;
+            }
+        } elseif ($_POST['action'] === 'upload_i9') {
+            list($ok, $err) = saveEmployeeDocument($id, 'i9', 'i9_file');
+            if ($ok) {
+                $message = 'I-9 uploaded.';
+                $stmt = getDbConnection()->prepare("SELECT * FROM employees WHERE id = :id");
+                $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+                $employee = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+            } else {
+                $error = $err;
+            }
+        }
+    }
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (!isset($_POST['action']) || !in_array($_POST['action'] ?? '', ['upload_w4', 'upload_i9'], true))) {
     requireCsrfToken();
     $apiKey = getApiKeyForAdmin();
     if (!$apiKey) {
@@ -179,6 +205,39 @@ $title = $isEdit ? 'Edit employee' : 'Add employee';
                     <button type="submit" class="btn" style="margin-top: 1rem;"><?= $isEdit ? 'Save changes' : 'Add employee' ?></button>
                 </form>
             </div>
+            <?php if ($isEdit): ?>
+            <div class="info-box" style="margin-top: 1.5rem;">
+                <h2 style="margin-bottom: 1rem;">Documents</h2>
+                <?php if ($message): ?><div class="info-box" style="margin-bottom: 1rem;"><?= htmlspecialchars($message) ?></div><?php endif; ?>
+                <div class="flex" style="flex-wrap: wrap; gap: 2rem;">
+                    <div>
+                        <h3 style="margin-bottom: 0.5rem;">W-4 (signed)</h3>
+                        <?php if (!empty($e['w4_file_path'])): ?>
+                            <p><a href="employee-document.php?employee_id=<?= (int)$e['id'] ?>&doc=w4" target="_blank" class="btn btn-secondary">View / download W-4</a> uploaded <?= !empty($e['w4_uploaded_at']) ? date('M j, Y', strtotime($e['w4_uploaded_at'])) : '' ?></p>
+                        <?php endif; ?>
+                        <form method="POST" enctype="multipart/form-data" style="margin-top: 0.5rem;">
+                            <?= csrfField() ?>
+                            <input type="hidden" name="action" value="upload_w4">
+                            <input type="file" name="w4_file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">
+                            <button type="submit" class="btn"><?= !empty($e['w4_file_path']) ? 'Replace W-4' : 'Upload W-4' ?></button>
+                        </form>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 0.5rem;">I-9 (completed)</h3>
+                        <?php if (!empty($e['i9_file_path'])): ?>
+                            <p><a href="employee-document.php?employee_id=<?= (int)$e['id'] ?>&doc=i9" target="_blank" class="btn btn-secondary">View / download I-9</a> uploaded <?= !empty($e['i9_uploaded_at']) ? date('M j, Y', strtotime($e['i9_uploaded_at'])) : '' ?></p>
+                        <?php endif; ?>
+                        <form method="POST" enctype="multipart/form-data" style="margin-top: 0.5rem;">
+                            <?= csrfField() ?>
+                            <input type="hidden" name="action" value="upload_i9">
+                            <input type="file" name="i9_file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">
+                            <button type="submit" class="btn"><?= !empty($e['i9_file_path']) ? 'Replace I-9' : 'Upload I-9' ?></button>
+                        </form>
+                    </div>
+                </div>
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted, #666);">PDF, JPEG, or PNG, max 5MB. Re-upload replaces the current file.</p>
+            </div>
+            <?php endif; ?>
         </main>
     </div>
 </body>
