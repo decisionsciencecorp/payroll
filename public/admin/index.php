@@ -10,6 +10,7 @@ $db = getDbConnection();
 $empCount = $db->querySingle("SELECT COUNT(*) FROM employees");
 $lastPay = $db->querySingle("SELECT pay_date FROM payroll_history ORDER BY pay_date DESC LIMIT 1");
 $currentUser = getCurrentUser();
+$reserveProjections = buildEmployerReserveProjections();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,6 +52,7 @@ $currentUser = getCurrentUser();
                 <p>Employees: <strong><?= (int)$empCount ?></strong></p>
                 <p>Last payroll date: <strong><?= $lastPay ? date('Y-m-d', strtotime($lastPay)) : '—' ?></strong></p>
             </div>
+            <?php require __DIR__ . '/includes/employer-reserve-box.php'; ?>
         </main>
     </div>
 </body>

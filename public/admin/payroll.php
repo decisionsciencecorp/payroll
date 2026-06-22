@@ -47,6 +47,7 @@ $db = getDbConnection();
 $r = $db->query("SELECT p.*, e.full_name FROM payroll_history p JOIN employees e ON e.id = p.employee_id ORDER BY p.pay_date DESC, p.id DESC LIMIT 100");
 $payrolls = [];
 while ($row = $r->fetchArray(SQLITE3_ASSOC)) $payrolls[] = $row;
+$reserveProjections = buildEmployerReserveProjections();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -71,6 +72,10 @@ while ($row = $r->fetchArray(SQLITE3_ASSOC)) $payrolls[] = $row;
             </div>
             <?php if ($message): ?><div class="info-box"><?= htmlspecialchars($message) ?></div><?php endif; ?>
             <?php if ($error): ?><div class="info-box" style="color: var(--danger);"><?= htmlspecialchars($error) ?></div><?php endif; ?>
+            <?php
+            $boxTitle = 'Next payroll — employer reserve (monthly)';
+            require __DIR__ . '/includes/employer-reserve-box.php';
+            ?>
             <div class="info-box mb-2">
                 <h2 style="margin-bottom: 1rem;">Run payroll</h2>
                 <form method="POST">
@@ -90,14 +95,19 @@ while ($row = $r->fetchArray(SQLITE3_ASSOC)) $payrolls[] = $row;
             <?php else: ?>
                 <div class="info-box">
                     <table>
-                        <thead><tr><th>Date</th><th>Employee</th><th>Gross</th><th>Net</th><th></th></tr></thead>
+                        <thead><tr><th>Date</th><th>Employee</th><th>Gross</th><th>Net</th><th>Employer reserve</th><th></th></tr></thead>
                         <tbody>
-                            <?php foreach ($payrolls as $p): ?>
+                            <?php foreach ($payrolls as $p):
+                                $employerReserve = round((float)$p['employer_ss'] + (float)$p['employer_medicare'], 2);
+                            ?>
                                 <tr>
                                     <td><?= htmlspecialchars($p['pay_date']) ?></td>
                                     <td><?= htmlspecialchars($p['full_name']) ?></td>
                                     <td>$<?= number_format((float)$p['gross_pay'], 2) ?></td>
                                     <td>$<?= number_format((float)$p['net_pay'], 2) ?></td>
+                                    <td title="Employer SS $<?= number_format((float)$p['employer_ss'], 2) ?> + Medicare $<?= number_format((float)$p['employer_medicare'], 2) ?>">
+                                        <strong>$<?= number_format($employerReserve, 2) ?></strong>
+                                    </td>
                                     <td><a href="<?= htmlspecialchars(SITE_URL . '/api/pdf-stub.php?id=' . $p['id'] . '&api_key=' . urlencode(getApiKeyForAdmin() ?? '')) ?>" target="_blank" class="btn btn-secondary">Stub</a></td>
                                 </tr>
                             <?php endforeach; ?>

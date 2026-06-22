@@ -40,6 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 $db = getDbConnection();
+$reserveProjections = buildEmployerReserveProjections();
+$reserveByEmployeeId = [];
+foreach ($reserveProjections['employees'] as $reserveRow) {
+    $reserveByEmployeeId[$reserveRow['employee_id']] = $reserveRow;
+}
 $r = $db->query("SELECT e.id, e.full_name, e.ssn, e.filing_status, e.hire_date, e.monthly_gross_salary, (SELECT COUNT(*) FROM payroll_history WHERE employee_id = e.id) as payroll_count FROM employees e ORDER BY e.full_name");
 $employees = [];
 while ($row = $r->fetchArray(SQLITE3_ASSOC)) {
@@ -80,15 +85,24 @@ while ($row = $r->fetchArray(SQLITE3_ASSOC)) {
             <?php else: ?>
                 <div class="info-box">
                     <table>
-                        <thead><tr><th>Name</th><th>SSN</th><th>Filing status</th><th>Hire date</th><th>Monthly gross</th><th>Actions</th></tr></thead>
+                        <thead><tr><th>Name</th><th>SSN</th><th>Filing status</th><th>Hire date</th><th>Monthly gross</th><th>Employer reserve / mo</th><th>Actions</th></tr></thead>
                         <tbody>
-                            <?php foreach ($employees as $e): ?>
+                            <?php foreach ($employees as $e):
+                                $reserve = $reserveByEmployeeId[(int)$e['id']] ?? null;
+                            ?>
                                 <tr>
                                     <td><?= htmlspecialchars($e['full_name']) ?></td>
                                     <td><?= htmlspecialchars($e['ssn']) ?></td>
                                     <td><?= htmlspecialchars($e['filing_status']) ?></td>
                                     <td><?= htmlspecialchars($e['hire_date']) ?></td>
                                     <td>$<?= number_format((float)$e['monthly_gross_salary'], 2) ?></td>
+                                    <td>
+                                        <?php if ($reserve): ?>
+                                            <strong>$<?= number_format((float)$reserve['employer_fica_total'], 2) ?></strong>
+                                        <?php else: ?>
+                                            <span style="color: var(--text-muted);">—</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="flex" style="gap: 0.5rem;">
                                         <a href="employee-form.php?id=<?= (int)$e['id'] ?>" class="btn btn-secondary" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">Edit</a>
                                         <?php if ($e['payroll_count'] === 0): ?>

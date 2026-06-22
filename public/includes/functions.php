@@ -226,6 +226,123 @@ function calculatePayrollForEmployee($employee, $config, $ytdGross, $ytdFederal,
     ];
 }
 
+function getTaxConfigForYear(int $year): ?array
+{
+    $db = getDbConnection();
+    $stmt = $db->prepare('SELECT config_json FROM tax_config WHERE tax_year = :y');
+    $stmt->bindValue(':y', $year, SQLITE3_INTEGER);
+    $row = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+    if (!$row) {
+        return null;
+    }
+    $config = json_decode($row['config_json'], true);
+    return is_array($config) ? $config : null;
+}
+
+/** Latest YTD snapshot for an employee within a calendar tax year (zeros if no runs). */
+function getEmployeeYtdSnapshot(int $employeeId, int $taxYear): array
+{
+    $db = getDbConnection();
+    $stmt = $db->prepare(
+        'SELECT ytd_gross, ytd_federal_withheld, ytd_ss, ytd_medicare
+         FROM payroll_history
+         WHERE employee_id = :eid AND pay_date >= :ystart AND pay_date <= :yend
+         ORDER BY pay_date DESC LIMIT 1'
+    );
+    $stmt->bindValue(':eid', $employeeId, SQLITE3_INTEGER);
+    $stmt->bindValue(':ystart', $taxYear . '-01-01', SQLITE3_TEXT);
+    $stmt->bindValue(':yend', $taxYear . '-12-31', SQLITE3_TEXT);
+    $row = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+    if (!$row) {
+        return [
+            'ytd_gross' => 0.0,
+            'ytd_federal_withheld' => 0.0,
+            'ytd_ss' => 0.0,
+            'ytd_medicare' => 0.0,
+        ];
+    }
+    return [
+        'ytd_gross' => (float)$row['ytd_gross'],
+        'ytd_federal_withheld' => (float)$row['ytd_federal_withheld'],
+        'ytd_ss' => (float)$row['ytd_ss'],
+        'ytd_medicare' => (float)$row['ytd_medicare'],
+    ];
+}
+
+/**
+ * Employer-side monthly reserve beyond paycheck deductions (employer FICA match).
+ * Employee federal/SS/Medicare withheld from net pay are returned separately for context.
+ */
+function calculateEmployerMonthlyReserve(
+    array $employee,
+    array $config,
+    float $ytdGross = 0,
+    float $ytdFederal = 0,
+    float $ytdSs = 0,
+    float $ytdMedicare = 0
+): array {
+    $calc = calculatePayrollForEmployee($employee, $config, $ytdGross, $ytdFederal, $ytdSs, $ytdMedicare);
+    $employerFicaTotal = round($calc['employer_ss'] + $calc['employer_medicare'], 2);
+    $employeeWithholdings = round(
+        $calc['federal_withholding'] + $calc['employee_ss'] + $calc['employee_medicare'],
+        2
+    );
+    return [
+        'gross_pay' => (float)$employee['monthly_gross_salary'],
+        'employer_ss' => $calc['employer_ss'],
+        'employer_medicare' => $calc['employer_medicare'],
+        'employer_fica_total' => $employerFicaTotal,
+        'employee_withholdings_total' => $employeeWithholdings,
+        'net_pay' => $calc['net_pay'],
+    ];
+}
+
+/** Per-employee employer reserve projections for the current (or given) tax year. */
+function buildEmployerReserveProjections(?int $taxYear = null): array
+{
+    $taxYear = $taxYear ?? (int)date('Y');
+    $config = getTaxConfigForYear($taxYear);
+    if (!$config) {
+        return [
+            'tax_year' => $taxYear,
+            'tax_config_missing' => true,
+            'employees' => [],
+            'company_total' => 0.0,
+        ];
+    }
+
+    $db = getDbConnection();
+    $result = $db->query('SELECT * FROM employees ORDER BY full_name');
+    $employees = [];
+    $companyTotal = 0.0;
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $ytd = getEmployeeYtdSnapshot((int)$row['id'], $taxYear);
+        $reserve = calculateEmployerMonthlyReserve(
+            $row,
+            $config,
+            $ytd['ytd_gross'],
+            $ytd['ytd_federal_withheld'],
+            $ytd['ytd_ss'],
+            $ytd['ytd_medicare']
+        );
+        $companyTotal += $reserve['employer_fica_total'];
+        $employees[] = array_merge(
+            [
+                'employee_id' => (int)$row['id'],
+                'full_name' => $row['full_name'],
+            ],
+            $reserve
+        );
+    }
+
+    return [
+        'tax_year' => $taxYear,
+        'tax_config_missing' => false,
+        'employees' => $employees,
+        'company_total' => round($companyTotal, 2),
+    ];
+}
+
 if (!defined('EMPLOYEE_DOC_MAX_BYTES')) {
     define('EMPLOYEE_DOC_MAX_BYTES', 5 * 1024 * 1024);
 }
